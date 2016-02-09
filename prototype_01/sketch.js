@@ -30,7 +30,6 @@ function setup() {
 	myTarget = new Target();
 
 	draw();
-	console.log(mouse);
 }
 
 function draw() {
@@ -268,7 +267,7 @@ function addListeners(){
 			evt.preventDefault();
 			var touches = evt.changedTouches;
 			pmouse.pos.x = mouse.pos.x;
-			pmouse.pos.y = mousmouse.pos.y;
+			pmouse.pos.y = mouse.pos.y;
 			mouse.pos.x = touches[0].pageX;
 			mouse.pos.y = touches[0].pageY;
 		}else{
