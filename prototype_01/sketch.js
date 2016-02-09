@@ -2,13 +2,15 @@
 var request;	// animation
 var canvas;		// canvas
 var ctx;
+var isMobile;
+
+var mouse, pmouse;
 
 var myBall;
 var gravity;
 var damping;
-var isMobile;
 
-var mouseX, mouseY, pmouseX, pmouseY;
+var myTarget;
 
 function setup() {
 
@@ -18,24 +20,65 @@ function setup() {
 	isMobile = mobileCheck();
 	addListeners();
 
+	mouse = new Mouse();
+	pmouse = new Mouse();	
+
 	myBall = new Ball();
 	gravity = 1;
 	damping = -1;
 
+	myTarget = new Target();
+
 	draw();
+	console.log(mouse);
 }
 
 function draw() {
 	
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+	myTarget.display();
+
 	myBall.update();
 	myBall.display();
+
+	if(myBall.isOver(myTarget)){
+		console.log('yay');
+	}
 
 	request = requestAnimFrame(draw);
 }
 
 // Classes
+function Mouse(){
+	this.pos = {
+		x: 0,
+		y: 0
+	};
+	this.radius = 0;
+}
+
+function Target(){
+	var _x = canvas.width - 150;
+	var _y = 150;
+	var _radius = 100;
+	
+	// Class variables
+	this.pos = {
+		x: _x,
+		y: _y
+	};
+	this.radius = _radius;
+
+	this.display = function(){
+        ctx.fillStyle = parseHslaColor(0, 100, 50, 1);
+        ctx.lineWidth = 2;
+		ctx.beginPath();
+		ctx.arc(this.pos.x, this.pos.y, this.radius, this.radius, 0, Math.PI*2, false);
+		ctx.fill();
+	};
+}
+
 function Ball(){
 	
 	var _x = 200;
@@ -56,8 +99,8 @@ function Ball(){
 
 	this.update = function(){
 		if(this.isDragging){
-			this.pos.x = mouseX;
-			this.pos.y = mouseY;
+			this.pos.x = mouse.pos.x;
+			this.pos.y = mouse.pos.y;
 		}else{
 			if(this.vel.x > 0 || this.vel.y > 0){
 				// Walls
@@ -74,7 +117,7 @@ function Ball(){
 	};
 
 	this.display = function(){
-        ctx.strokeStyle = parseHslaColor(0, 0, 0, 0.3);
+        ctx.fillStyle = parseHslaColor(190, 100, 50, 1);
         ctx.lineWidth = 2;
 		ctx.beginPath();
 		ctx.arc(this.pos.x, this.pos.y, this.radius, this.radius, 0, Math.PI*2, false);
@@ -82,8 +125,8 @@ function Ball(){
 	};
 
 	this.setInMotion = function(){
-		this.vel.x = mouseX - pmouseX;
-		this.vel.y = mouseY - pmouseY;
+		this.vel.x = mouse.pos.x - pmouse.pos.x;
+		this.vel.y = mouse.pos.y - pmouse.pos.y;
 	};
 
 	this.checkWalls = function(){
@@ -117,9 +160,11 @@ function Ball(){
       }
 	};
 
-	this.isOver = function(){
-		if(dist(this.pos.x, this.pos.y, mouseX, mouseY) < this.radius){
-			this.isDragging = true;
+	this.isOver = function(_obj){
+		if(dist(_obj.pos.x, _obj.pos.y, this.pos.x, this.pos.y) < _obj.radius + this.radius){
+			return true;
+		}else{
+			return false;
 		}
 	};	
 }
@@ -183,7 +228,9 @@ function addListeners(){
 	if(isMobile){
 		canvas.addEventListener('touchstart', function(evt){
 			getMousePos(evt);
-			myBall.isOver();
+			if(myBall.isOver(mouse)){
+				myBall.isDragging = true;
+			};
 		}, false);
 
 		canvas.addEventListener('touchmove', function(evt){
@@ -199,7 +246,9 @@ function addListeners(){
 	}else{
 		canvas.addEventListener('mousedown', function(evt){
 			getMousePos(evt);			
-			myBall.isOver();
+			if(myBall.isOver(mouse)){
+				myBall.isDragging = true;
+			};
 		}, false);
 
 		canvas.addEventListener('mousemove', function(evt){
@@ -218,15 +267,15 @@ function addListeners(){
 		if(isMobile){
 			evt.preventDefault();
 			var touches = evt.changedTouches;
-			pmouseX = mouseX;
-			pmouseY = mouseY;
-			mouseX = touches[0].pageX;
-			mouseY = touches[0].pageY;			
+			pmouse.pos.x = mouse.pos.x;
+			pmouse.pos.y = mousmouse.pos.y;
+			mouse.pos.x = touches[0].pageX;
+			mouse.pos.y = touches[0].pageY;
 		}else{
-			pmouseX = mouseX;
-			pmouseY = mouseY;
-			mouseX = evt.clientX;
-			mouseY = evt.clientY;
+			pmouse.pos.x = mouse.pos.x;
+			pmouse.pos.y = mouse.pos.y;
+			mouse.pos.x = evt.clientX;
+			mouse.pos.y = evt.clientY;
 		}
 	}	
 };
