@@ -11,6 +11,10 @@ var gravity;
 var damping;
 
 var myTarget;
+var myTimer;
+var remainingTime;
+
+var gameOver;
 
 function setup() {
 
@@ -21,13 +25,16 @@ function setup() {
 	addListeners();
 
 	mouse = new Mouse();
-	pmouse = new Mouse();	
+	pmouse = new Mouse();
 
 	myBall = new Ball();
 	gravity = 1;
 	damping = -1;
 
 	myTarget = new Target();
+	myTimer = new Timer(5000);
+
+	gameOver = false;
 
 	draw();
 }
@@ -36,19 +43,60 @@ function draw() {
 	
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-	myTarget.display();
+	if(!gameOver){
+		myTarget.display();
 
-	myBall.update();
-	myBall.display();
+		myBall.update();
+		myBall.display();
 
-	if(myBall.isOver(myTarget)){
-		console.log('yay');
+		myTimer.display();
+
+		if(myBall.isOver(myTarget)){
+			console.log('yay');
+		}
+	}else{
+		ctx.fillStyle = parseHsla(0, 0, 0, 1);
+		ctx.font = "120px sans-serif";
+		ctx.textAlign = "center";
+		ctx.fillText("GAME\nOVER", canvas.width/2, canvas.height/2);
 	}
 
+
+	// Makes draw loop
 	request = requestAnimFrame(draw);
 }
 
 // Classes
+function Timer(time){
+	var totalTime = time;
+	remainingTime = time;
+	var timeBar = {
+		pos: {
+			x: 30,
+			y: canvas.height - 60
+		},
+		width: canvas.width - 60,
+		height: 30
+	};
+
+	var gameTimer = setInterval(function(){
+		remainingTime -= 100;
+		if(remainingTime <= 0){
+			clearInterval(gameTimer);
+			gameOver = true;	
+		}
+	}, 100);
+
+	this.display = function(){
+		ctx.fillStyle = parseHsla(0, 0, 75, 1);
+		ctx.fillRect(timeBar.pos.x, timeBar.pos.y, timeBar.width, timeBar.height);
+		
+		ctx.fillStyle = parseHsla(0, 100, 50, 1);
+		var remainingWidth = map(remainingTime, 0, totalTime, 0, timeBar.width);
+		ctx.fillRect(timeBar.pos.x, timeBar.pos.y, remainingWidth, timeBar.height);
+	};
+}
+
 function Mouse(){
 	this.pos = {
 		x: 0,
@@ -70,7 +118,7 @@ function Target(){
 	this.radius = _radius;
 
 	this.display = function(){
-        ctx.fillStyle = parseHslaColor(0, 100, 50, 1);
+        ctx.fillStyle = parseHsla(0, 100, 50, 1);
         ctx.lineWidth = 2;
 		ctx.beginPath();
 		ctx.arc(this.pos.x, this.pos.y, this.radius, this.radius, 0, Math.PI*2, false);
@@ -81,7 +129,7 @@ function Target(){
 function Ball(){
 	
 	var _x = 200;
-	var _y = canvas.height - 50
+	var _y = canvas.height - 50;
 	var _radius = 50;	
 	
 	// Class variables
@@ -116,7 +164,7 @@ function Ball(){
 	};
 
 	this.display = function(){
-        ctx.fillStyle = parseHslaColor(190, 100, 50, 1);
+        ctx.fillStyle = parseHsla(190, 100, 50, 1);
         ctx.lineWidth = 2;
 		ctx.beginPath();
 		ctx.arc(this.pos.x, this.pos.y, this.radius, this.radius, 0, Math.PI*2, false);
@@ -182,7 +230,21 @@ function mobileCheck(){
 	return check;
 }
 
-function parseHslaColor(h, s, l, a){
+// Processing-like functions
+
+function constrain(value, min, max){
+	var constrainedValue = Math.min(Math.max(value, min), max);	
+	return constrainedValue;
+}
+
+function map(value, aMin, aMax, bMin, bMax){
+  	var srcMax = aMax - aMin,
+    	dstMax = bMax - bMin,
+    	adjValue = value - aMin;
+  	return (adjValue * dstMax / srcMax) + bMin;
+}	
+
+function parseHsla(h, s, l, a){
 	var myHslColor = 'hsla(' + h + ', ' + s + '%, ' + l + '%, ' + a +')';
 	//console.log('called calculateAngle function');
 	return myHslColor;
