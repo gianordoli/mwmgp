@@ -9,8 +9,8 @@ mg = (function(){
 	var timer = function(time){
 		myTimer = new Timer(time);
 	};
-	var circle = function(_x, _y, _radius, _color){
-		var myCircle = new Circle(_x, _y, _radius, _color);
+	var circle = function(_x, _y, _radius){
+		var myCircle = new Circle(_x, _y, _radius);
 		objects.push(myCircle);
 		return objects[objects.length - 1];
 	};
@@ -93,7 +93,7 @@ mg = (function(){
 		var timeBar = {
 			pos: {
 				x: 30,
-				y: canvas.height - 60
+				y: 30
 			},
 			width: canvas.width - 60,
 			height: 30
@@ -127,11 +127,20 @@ mg = (function(){
 
 	function Circle(_x, _y, _radius){
 
+		// Saving this for reseting the ball later
+		var initX = _x;
+		var initY = _y;
+
+		var actions = [];
+
 		/*---------- PUBLIC ----------*/
 		this.setInteraction = function(_obj, callback){
-			if(this.isOver(_obj)){
-				callback();
-			}
+			var parent = this;
+			actions.push(function(){
+				if(parent.isOver(_obj)){
+					callback();
+				}	
+			});
 			return this;
 		};
 		
@@ -149,8 +158,6 @@ mg = (function(){
 			return this;
 		};
 		/*----------------------------*/
-		
-		this.color = "black"; // Default
 		this.pos = {
 			x: _x,
 			y: _y
@@ -159,17 +166,24 @@ mg = (function(){
 			x: 0,
 			y: 0
 		};
+		this.color = "black"; // Default
 		this.radius = _radius;
 		this.isDragging = false;
 
 		this.update = function(){
+			for(var i = 0; i < actions.length; i++){
+				actions[i]();
+			};
 			if(this.isDragging){
 				this.pos.x = mouse.pos.x;
 				this.pos.y = mouse.pos.y;
+			// if(!this.isDragging){
 			}else{
-				if(this.vel.x > 0 || this.vel.y > 0){
+				if(this.vel.x > 2 || this.vel.y > 2){
+
 					// Walls
 					this.checkWalls();
+					// this.bounce();
 
 					// Updating speed
 					this.vel.y += gravity;
@@ -206,9 +220,16 @@ mg = (function(){
 		this.checkWalls = function(){
 			if (this.pos.x < 0 || this.pos.x > canvas.width
 				|| this.pos.y > canvas.height || this.pos.y < 0) {
-
-				delete myBall;
-				myBall = new Ball();
+				
+				// new ball wih initial user-set values
+				this.pos = {
+					x: initX,
+					y: initY
+				};
+				this.vel = {
+					x: 0,
+					y: 0
+				};
 			}
 		};
 
