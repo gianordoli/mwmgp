@@ -1,6 +1,6 @@
 // Super globals... We might need to expose these
 var width, height;
-var touch, ptouch;
+var mgtouch, mgptouch;
 
 var mg = mg || {};
 
@@ -67,9 +67,6 @@ mg = (function(){
 
 			myTimer.display();
 
-			// if(myBall.isOver(myTarget)){
-			// 	console.log('yay');
-			// }
 		}else{
 			ctx.fillStyle = parseHsla(0, 0, 0, 1);
 			ctx.font = "120px sans-serif";
@@ -113,7 +110,7 @@ mg = (function(){
 		};
 	}
 
-	function Mouse(){
+	function MgTouch(){
 		this.pos = {
 			x: 0,
 			y: 0
@@ -211,8 +208,8 @@ mg = (function(){
 		}
 
 		this.setInMotion = function(){
-			this.vel.x = touch.pos.x - ptouch.pos.x;
-			this.vel.y = touch.pos.y - ptouch.pos.y;
+			this.vel.x = mgtouch.pos.x - mgptouch.pos.x;
+			this.vel.y = mgtouch.pos.y - mgptouch.pos.y;
 		};
 
 		this.checkWalls = function(){
@@ -265,8 +262,8 @@ mg = (function(){
 	}
 
 	function startTouch(){
-		touch = new Mouse();
-		ptouch = new Mouse();		
+		mgtouch = new MgTouch();
+		mgptouch = new MgTouch();		
 	}
 
 	function mobileCheck(){
@@ -334,7 +331,7 @@ mg = (function(){
 		if(isMobile){
 			canvas.addEventListener('touchstart', function(evt){
 				getTouchPos(evt);
-				if(_obj.isOver(touch)){
+				if(_obj.isOver(mgtouch)){
 					_obj.isDragging = true;
 				};
 			}, false);
@@ -352,7 +349,7 @@ mg = (function(){
 		}else{
 			canvas.addEventListener('mousedown', function(evt){
 				getTouchPos(evt);			
-				if(_obj.isOver(touch)){
+				if(_obj.isOver(mgtouch)){
 					_obj.isDragging = true;
 				};
 			}, false);
@@ -373,15 +370,15 @@ mg = (function(){
 			if(isMobile){
 				evt.preventDefault();
 				var touches = evt.changedTouches;
-				ptouch.pos.x = touch.pos.x;
-				ptouch.pos.y = touch.pos.y;
-				touch.pos.x = touches[0].pageX;
-				touch.pos.y = touches[0].pageY;
+				mgptouch.pos.x = mgtouch.pos.x;
+				mgptouch.pos.y = mgtouch.pos.y;
+				mgtouch.pos.x = touches[0].pageX;
+				mgtouch.pos.y = touches[0].pageY;
 			}else{
-				ptouch.pos.x = touch.pos.x;
-				ptouch.pos.y = touch.pos.y;
-				touch.pos.x = evt.clientX;
-				touch.pos.y = evt.clientY;
+				mgptouch.pos.x = mgtouch.pos.x;
+				mgptouch.pos.y = mgtouch.pos.y;
+				mgtouch.pos.x = evt.clientX;
+				mgtouch.pos.y = evt.clientY;
 			}
 		}	
 	};

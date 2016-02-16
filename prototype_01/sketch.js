@@ -7,7 +7,7 @@ mg.timer(50000);
 
 
 // Ideally we could have this being set visually
-var target = mg.circle(width - 800, 200, 100)	// x, y, radius
+var target = mg.circle(width - 600, 200, 100)	// x, y, radius
 				.setColor("red");				// string, rgb, rgba, hsl
 
 
@@ -17,7 +17,7 @@ mg.circle(200, height-50, 50)
 	// .draggable		// could be another option
 	// .setInteraction(target, function(){
 		// sending an array sets the conditional to &&
-		.setInteraction([target, touch], function(){ // touch is a global
+		.setInteraction([target, mgtouch], function(){ // touch is a global
 		console.log("YAY");
 	});
 
