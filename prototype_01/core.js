@@ -350,10 +350,14 @@ mg = (function(){
 	function addListeners(_obj){
 		if(isMobile){
 			canvas.addEventListener('touchstart', function(evt){
-				getTouchPos(evt);
-				if(_obj.isOver(mgtouch)){
-					_obj.isDragging = true;
-				};
+				if(gameOver){
+					location.reload();
+				}else{
+					getTouchPos(evt);
+					if(_obj.isOver(mgtouch)){
+						_obj.isDragging = true;
+					};
+				}
 			}, false);
 
 			canvas.addEventListener('touchmove', function(evt){
@@ -368,10 +372,14 @@ mg = (function(){
 			}, false);
 		}else{
 			canvas.addEventListener('mousedown', function(evt){
-				getTouchPos(evt);			
-				if(_obj.isOver(mgtouch)){
-					_obj.isDragging = true;
-				};
+				if(gameOver){
+					location.reload();
+				}else{
+					getTouchPos(evt);			
+					if(_obj.isOver(mgtouch)){
+						_obj.isDragging = true;
+					};
+				}
 			}, false);
 
 			canvas.addEventListener('mousemove', function(evt){
