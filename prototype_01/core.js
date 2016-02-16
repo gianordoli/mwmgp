@@ -221,7 +221,7 @@ mg = (function(){
 		}
 
 		this.setInMotion = function(){
-			var speed = 1.5;
+			var speed = 1;
 			this.vel.x = (mgtouch.pos.x - mgptouch.pos.x)*speed;
 			this.vel.y = (mgtouch.pos.y - mgptouch.pos.y)*speed;
 		};
