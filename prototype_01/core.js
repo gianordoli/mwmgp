@@ -1,7 +1,7 @@
 // Super globals... We might need to expose these
 var width, height;
 var mgtouch, mgptouch;
-var remainingTime;
+var score;
 
 var mg = mg || {};
 
@@ -50,6 +50,7 @@ mg = (function(){
 		gravity = 1;
 		damping = -1;
 
+		score = 0;
 		gameOver = false;
 
 		draw();
@@ -66,7 +67,13 @@ mg = (function(){
 				objects[i].display();
 			}			
 
+			// Timer
 			myTimer.display();
+			// Score
+			ctx.fillStyle = 'black';
+			ctx.font = "40px sans-serif";
+			ctx.textAlign = "left";		
+			ctx.fillText(score + '/5', 30, 110);
 
 		}else{
 			ctx.fillStyle = parseHsla(0, 0, 0, 1);
@@ -74,7 +81,6 @@ mg = (function(){
 			ctx.textAlign = "center";
 			ctx.fillText("GAME\nOVER", canvas.width/2, canvas.height/2);
 		}
-
 
 		// Makes draw loop
 		request = requestAnimFrame(draw);
@@ -131,7 +137,6 @@ mg = (function(){
 		/*---------- PUBLIC ----------*/
 
 		this.animate = function(_obj, _time){
-			console.log(_obj);
 			this.radius -= 20;
 			return this;
 		}
@@ -228,7 +233,8 @@ mg = (function(){
 
 		this.checkWalls = function(){
 			if (this.pos.x < 0 || this.pos.x > canvas.width
-				|| this.pos.y > canvas.height || this.pos.y < 0) {
+				// || this.pos.y > canvas.height || this.pos.y < 0) {
+				|| this.pos.y > canvas.height) {
 				
 				// new ball wih initial user-set values
 				this.pos = {

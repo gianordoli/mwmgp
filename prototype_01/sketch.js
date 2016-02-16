@@ -6,7 +6,7 @@ mg.startTouch();
 var timer = mg.timer(10000);
 
 // Ideally we could positions/sizes this being set visually
-var circle = mg.circle(100, height-50, 50) // x, y, radius
+var circle = mg.circle(100, height-80, 50) // x, y, radius
 	.setColor("blue")					   // string, rgb, rgba, hsl
 	.throwable()		// optional: "reverse" — for Angry Birds, pool, etc
 	;
@@ -19,6 +19,7 @@ target = mg.circle(width - 200, 200, 200)
 				target.animate({
 					radius: target.radius - 20
 				}, 500);	// Could add more properties to animate...
+				score ++;
 			});
 
 // Expanding on the ideas:
