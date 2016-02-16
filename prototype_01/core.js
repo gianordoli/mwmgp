@@ -1,6 +1,7 @@
 // Super globals... We might need to expose these
 var width, height;
 var mgtouch, mgptouch;
+var remainingTime;
 
 var mg = mg || {};
 
@@ -9,6 +10,7 @@ mg = (function(){
 	// PUBLIC STUFF
 	var timer = function(time){
 		myTimer = new Timer(time);
+		return myTimer;
 	};
 	var circle = function(_x, _y, _radius){
 		var myCircle = new Circle(_x, _y, _radius);
@@ -33,7 +35,6 @@ mg = (function(){
 
 	var myTarget;
 	var myTimer;
-	var remainingTime;
 
 	var gameOver;
 
@@ -82,7 +83,7 @@ mg = (function(){
 	// Classes
 	function Timer(time){
 		var totalTime = time;
-		remainingTime = time;
+		remainingTime = time; // global
 		var timeBar = {
 			pos: {
 				x: 30,
@@ -125,15 +126,25 @@ mg = (function(){
 		var initY = _y;
 
 		var actions = [];
+		// var transformations = [];
 
 		/*---------- PUBLIC ----------*/
-		this.setInteraction = function(_obj, callback){
+
+		this.animate = function(_obj, _time){
+			console.log(_obj);
+			this.radius -= 20;
+			return this;
+		}
+
+		this.setInteraction = function(_array, callback){
 			var parent = this;
-			console.log(_obj[0]);
-			console.log(_obj[1]);
+			// console.log(_array[0]);
+			// console.log(_array[1]);
+			var debounce;			
 			actions.push(function(){
-				if(parent.isOver(_obj[0]) && parent.isOver(_obj[1])){
-					callback();
+				if(parent.isOver(_array[0]) && parent.isOver(_array[1])){
+		    		clearTimeout(debounce);
+		    		debounce = setTimeout(callback, 500); 
 				}	
 			});
 			return this;
@@ -143,6 +154,8 @@ mg = (function(){
 		this.setColor = function(_color){
 			if(typeof _color === "string"){
 				this.color = _color;
+			}else if(typeof _color === 'object'){
+				this.color = parseHsla(_color['h'], _color['s'], _color['l'], _color['a'])
 			}
 			return this;
 			// we could add more conditions to allow for rgb, rgba, etc...
@@ -208,8 +221,9 @@ mg = (function(){
 		}
 
 		this.setInMotion = function(){
-			this.vel.x = mgtouch.pos.x - mgptouch.pos.x;
-			this.vel.y = mgtouch.pos.y - mgptouch.pos.y;
+			var speed = 1.5;
+			this.vel.x = (mgtouch.pos.x - mgptouch.pos.x)*speed;
+			this.vel.y = (mgtouch.pos.y - mgptouch.pos.y)*speed;
 		};
 
 		this.checkWalls = function(){
