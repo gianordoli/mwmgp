@@ -1,5 +1,6 @@
 // Super globals... We might need to expose these
 var width, height;
+var touch, ptouch;
 
 var mg = mg || {};
 
@@ -26,8 +27,6 @@ mg = (function(){
 	var ctx;
 	var isMobile;
 
-	var mouse, pmouse;
-
 	var myBall;
 	var gravity;
 	var damping;
@@ -47,8 +46,8 @@ mg = (function(){
 
 	function setup() {
 
-		mouse = new Mouse();
-		pmouse = new Mouse();
+		touch = new Mouse();
+		ptouch = new Mouse();
 
 		gravity = 1;
 		damping = -1;
@@ -175,8 +174,8 @@ mg = (function(){
 				actions[i]();
 			};
 			if(this.isDragging){
-				this.pos.x = mouse.pos.x;
-				this.pos.y = mouse.pos.y;
+				// this.pos.x = touch.pos.x;
+				// this.pos.y = touch.pos.y;
 			// if(!this.isDragging){
 			}else{
 				if(this.vel.x > 2 || this.vel.y > 2){
@@ -213,8 +212,8 @@ mg = (function(){
 		}
 
 		this.setInMotion = function(){
-			this.vel.x = mouse.pos.x - pmouse.pos.x;
-			this.vel.y = mouse.pos.y - pmouse.pos.y;
+			this.vel.x = touch.pos.x - ptouch.pos.x;
+			this.vel.y = touch.pos.y - ptouch.pos.y;
 		};
 
 		this.checkWalls = function(){
@@ -330,14 +329,14 @@ mg = (function(){
 	function addListeners(_obj){
 		if(isMobile){
 			canvas.addEventListener('touchstart', function(evt){
-				getMousePos(evt);
-				if(_obj.isOver(mouse)){
+				getTouchPos(evt);
+				if(_obj.isOver(touch)){
 					_obj.isDragging = true;
 				};
 			}, false);
 
 			canvas.addEventListener('touchmove', function(evt){
-				getMousePos(evt);
+				getTouchPos(evt);
 			}, false);
 
 			canvas.addEventListener('touchend', function(evt){
@@ -348,14 +347,14 @@ mg = (function(){
 			}, false);
 		}else{
 			canvas.addEventListener('mousedown', function(evt){
-				getMousePos(evt);			
-				if(_obj.isOver(mouse)){
+				getTouchPos(evt);			
+				if(_obj.isOver(touch)){
 					_obj.isDragging = true;
 				};
 			}, false);
 
 			canvas.addEventListener('mousemove', function(evt){
-				getMousePos(evt);
+				getTouchPos(evt);
 			}, false);
 
 			canvas.addEventListener('mouseup', function(evt){
@@ -366,19 +365,19 @@ mg = (function(){
 			}, false);			
 		}
 
-		function getMousePos(evt){
+		function getTouchPos(evt){
 			if(isMobile){
 				evt.preventDefault();
 				var touches = evt.changedTouches;
-				pmouse.pos.x = mouse.pos.x;
-				pmouse.pos.y = mouse.pos.y;
-				mouse.pos.x = touches[0].pageX;
-				mouse.pos.y = touches[0].pageY;
+				ptouch.pos.x = touch.pos.x;
+				ptouch.pos.y = touch.pos.y;
+				touch.pos.x = touches[0].pageX;
+				touch.pos.y = touches[0].pageY;
 			}else{
-				pmouse.pos.x = mouse.pos.x;
-				pmouse.pos.y = mouse.pos.y;
-				mouse.pos.x = evt.clientX;
-				mouse.pos.y = evt.clientY;
+				ptouch.pos.x = touch.pos.x;
+				ptouch.pos.y = touch.pos.y;
+				touch.pos.x = evt.clientX;
+				touch.pos.y = evt.clientY;
 			}
 		}	
 	};

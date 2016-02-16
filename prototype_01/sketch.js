@@ -1,6 +1,6 @@
-// This doesn't need to be public-facing
-mg.canvasSetup();
-
+/*---------------------------------------------*/
+mg.canvasSetup(); // This won't be public-facing
+/*---------------------------------------------*/
 
 mg.timer(50000);
 
@@ -18,5 +18,6 @@ mg.circle(200, height-50, 50)
 	});
 
 
-// This doesn't need to be public-facing
-mg.init();
+/*---------------------------------------------*/
+mg.init(); // This won't be public-facing
+/*---------------------------------------------*/
