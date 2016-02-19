@@ -2,6 +2,8 @@
 var width, height;
 var mgtouch, mgptouch;
 var score;
+var gravity;
+var damping;
 
 var mg = mg || {};
 
@@ -31,11 +33,6 @@ mg = (function(){
 	var ctx;
 	var isMobile;
 
-	var myBall;
-	var gravity;
-	var damping;
-
-	var myTarget;
 	var myTimer;
 
 	var gameOver;
@@ -49,6 +46,7 @@ mg = (function(){
 
 	function setup() {
 
+		// If nothing is passed, default to:
 		gravity = 1;
 		damping = -1;
 
@@ -127,9 +125,10 @@ mg = (function(){
 		this.radius = 0;
 	}
 
-	// This is the 'master' MgObject. All objects will share its properties and methods
+	/*-------------------------------------- CLASSES --------------------------------------*/
+	
 	function MgObject(){
-
+		// This is the 'master' MgObject. All objects will share its properties and methods
 		var obj = {};
 
 		/*------------------- PROPERTIES -------------------*/		
@@ -153,8 +152,6 @@ mg = (function(){
 
 		obj.setInteraction = function(_array, callback){
 			var parent = this;
-			// console.log(_array[0]);
-			// console.log(_array[1]);
 			var debounce;			
 			this.actions.push(function(){
 				if(parent.isOver(_array[0]) && parent.isOver(_array[1])){
@@ -164,17 +161,32 @@ mg = (function(){
 			});
 			return this;
 		};
-		
-		// Class variables
-		obj.setColor = function(_color){
-			if(typeof _color === "string"){
-				this.color = _color;
-			}else if(typeof _color === 'object'){
-				this.color = parseHsla(_color['h'], _color['s'], _color['l'], _color['a'])
+
+		obj.isOver = function(_obj2){
+			if(dist(obj.pos.x, obj.pos.y, _obj2.pos.x, _obj2.pos.y) < obj.radius + _obj2.radius){
+				return true;
+			}else{
+				return false;
 			}
-			return this;
-			// we could add more conditions to allow for rgb, rgba, etc...
-		};
+		}
+
+		obj.throwable = function(){
+			var _obj = addListeners(obj);
+			return _obj;
+		}
+
+
+
+		obj.setInMotion = function(){
+			var speed = 1;
+			obj.vel.x = (mgtouch.pos.x - mgptouch.pos.x)*speed;
+			obj.vel.y = (mgtouch.pos.y - mgptouch.pos.y)*speed;
+		};		
+		
+		obj.setColor = function(_color){
+			var _obj = setColor(obj, _color);
+			return _obj;
+		}
 
 		obj.gravitational = function(){
 			obj.actions.push(function(){
@@ -183,6 +195,23 @@ mg = (function(){
 		};
 		return obj;
 	}
+
+	function MgWall(_x, _y, _width, _height, _effect){
+
+		// Walls are different from MgObjects
+
+	};
+
+	function setColor(_obj, _color){
+		var obj = _obj;
+		if(typeof _color === "string"){
+			obj.color = _color;
+		}else if(typeof _color === 'object'){
+			obj.color = parseHsla(_color['h'], _color['s'], _color['l'], _color['a'])
+		}
+		return obj;
+		// we could add more conditions to allow for rgb, rgba, etc...
+	};
 
 	function Circle(_obj, _x, _y, _radius){
 
@@ -200,15 +229,10 @@ mg = (function(){
 
 		/*-------------------- FUNCTIONS --------------------*/
 
-
-
-
-
-
-		this.throwable = function(){
-			addListeners(this);
-			return this;
-		};
+		// obj.throwable = function(){
+		// 	addListeners(this);
+		// 	return this;
+		// };
 		/*----------------------------*/
 
 
@@ -246,19 +270,7 @@ mg = (function(){
 			ctx.fill();
 		};
 
-		obj.isOver = function(_obj){
-			if(dist(_obj.pos.x, _obj.pos.y, obj.pos.x, obj.pos.y) < _obj.radius + obj.radius){
-				return true;
-			}else{
-				return false;
-			}
-		}
 
-		obj.setInMotion = function(){
-			var speed = 1;
-			obj.vel.x = (mgtouch.pos.x - mgptouch.pos.x)*speed;
-			obj.vel.y = (mgtouch.pos.y - mgptouch.pos.y)*speed;
-		};
 
 		obj.checkWalls = function(){
 			if (obj.pos.x < 0 || obj.pos.x > canvas.width

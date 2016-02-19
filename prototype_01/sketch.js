@@ -4,12 +4,14 @@ mg.startTouch();
 
 var timer = mg.timer(10000);
 
+
+
 // Ideally we could positions/sizes this being set visually
-var circle = mg.circle(100, height-60, 50); // x, y, radius
-	// .setColor("blue")					   // string, rgb, rgba, hsl
+var circle = mg.circle(100, height-60, 50) // x, y, radius
+	.setColor("blue")					   // string, rgb, rgba, hsl
 	// // .gravitational()
-	// .throwable()		// optional: "reverse" — for Angry Birds, pool, etc
-	// ;
+	.throwable()		// optional: "reverse" — for Angry Birds, pool, etc
+	;
 
 // As in D3/Jquery, you can store the object you declare or not.
 // Storing allows further manipulation
