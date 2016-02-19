@@ -7,15 +7,16 @@ var mg = mg || {};
 
 mg = (function(){
 
-	// PUBLIC STUFF
-	var timer = function(time){
+	/*---------------------- PUBLIC ---------------------*/
+	this.timer = function(time){
 		myTimer = new Timer(time);
 		return myTimer;
 	};
-	var circle = function(_x, _y, _radius){
-		var myCircle = new Circle(_x, _y, _radius);
+	this.circle = function(_x, _y, _radius){
+		var myCircle = new Circle();
+		myCircle.setup(_x, _y, _radius);
 		objects.push(myCircle);
-		return objects[objects.length - 1];
+		return myCircle;
 	};
 
 	/*---------- VARIABLES ----------*/
@@ -125,16 +126,30 @@ mg = (function(){
 		this.radius = 0;
 	}
 
-	function Circle(_x, _y, _radius){
+	function Circle(){
 
-		// Saving this for reseting the ball later
-		var initX = _x;
-		var initY = _y;
+		/*-------------------- VARIABLES --------------------*/
+		// Everything public for now... :S
+		// Initiating all vars so we don't have any 'undefined' problem
+		this.pos = { x: 0, y: 0	};
+		this.vel = { x: 0, y: 0	};
+		this.initPos = { x: 0, y: 0	};	// Saving these for reseting the ball later		
+		this.color = "black"; 			// Default
+		this.radius = 20;
+		this.isDragging = false;
 
-		var actions = [];
-		// var transformations = [];
+		this.actions = [];			// Array with behavior functions
+		this.transformations = [];	// Array with transformation functions
 
-		/*---------- PUBLIC ----------*/
+		this.setup = function(_x, _y, _radius){
+			this.pos = { x: _x,	y: _y };
+			this.initPos = { x: _x,	y: _y };
+			this.radius = _radius;
+		}
+
+		/*-------------------- FUNCTIONS --------------------*/
+
+		// this.gravitational = gravitational(this);
 
 		this.animate = function(_obj, _time){
 			this.radius -= 20;
@@ -146,7 +161,7 @@ mg = (function(){
 			// console.log(_array[0]);
 			// console.log(_array[1]);
 			var debounce;			
-			actions.push(function(){
+			this.actions.push(function(){
 				if(parent.isOver(_array[0]) && parent.isOver(_array[1])){
 		    		clearTimeout(debounce);
 		    		debounce = setTimeout(callback, 500); 
@@ -171,21 +186,11 @@ mg = (function(){
 			return this;
 		};
 		/*----------------------------*/
-		this.pos = {
-			x: _x,
-			y: _y
-		};
-		this.vel = {
-			x: 0,
-			y: 0
-		};
-		this.color = "black"; // Default
-		this.radius = _radius;
-		this.isDragging = false;
+
 
 		this.update = function(){
-			for(var i = 0; i < actions.length; i++){
-				actions[i]();
+			for(var i = 0; i < this.actions.length; i++){
+				this.actions[i]();
 			};
 			if(this.isDragging){
 				// this.pos.x = touch.pos.x;
@@ -238,8 +243,8 @@ mg = (function(){
 				
 				// new ball wih initial user-set values
 				this.pos = {
-					x: initX,
-					y: initY
+					x: this.initPos.x,
+					y: this.initPos.y
 				};
 				this.vel = {
 					x: 0,
@@ -271,8 +276,18 @@ mg = (function(){
 		};
 	}
 
+	function gravitational(_obj){
+		console.log(_obj);
+		var obj = _obj;
+		obj.actions.push(function(){
+			console.log('yay!');
+		});
+		return obj;
+	}
+
 
 	/*---------- AUXILIAR FUNCTIONS ----------*/
+	// These are global setup functions (resize canvas, capture touch, check mobile, etc)
 
 	function resizeCanvas(){
 		canvas.width = window.innerWidth;
@@ -292,7 +307,8 @@ mg = (function(){
 		return check;
 	}
 
-	// Processing-like functions
+
+	/*------ PROCESSING-LIKE FUNCTIONS -------*/
 
 	function constrain(value, min, max){
 		var constrainedValue = Math.min(Math.max(value, min), max);	
