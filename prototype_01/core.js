@@ -13,10 +13,11 @@ mg = (function(){
 		return myTimer;
 	};
 	this.circle = function(_x, _y, _radius){
-		var myCircle = new Circle();
-		myCircle.setup(_x, _y, _radius);
-		objects.push(myCircle);
-		return myCircle;
+		var obj = new MgObject();
+		obj.createCircle(_x, _y, _radius);
+		console.log(obj);
+		objects.push(obj);
+		return obj;
 	};
 
 	/*---------- VARIABLES ----------*/
@@ -126,37 +127,31 @@ mg = (function(){
 		this.radius = 0;
 	}
 
-	function Circle(){
+	// This is the 'master' MgObject. All objects will share its properties and methods
+	function MgObject(){
 
-		/*-------------------- VARIABLES --------------------*/
-		// Everything public for now... :S
-		// Initiating all vars so we don't have any 'undefined' problem
-		this.pos = { x: 0, y: 0	};
-		this.vel = { x: 0, y: 0	};
-		this.initPos = { x: 0, y: 0	};	// Saving these for reseting the ball later		
-		this.color = "black"; 			// Default
-		this.radius = 20;
-		this.isDragging = false;
+		var obj = {};
 
-		this.actions = [];			// Array with behavior functions
-		this.transformations = [];	// Array with transformation functions
+		/*------------------- PROPERTIES -------------------*/		
+		obj.color = "black";		
+		obj.actions = [];			// Array with behavior functions
+		obj.transformations = [];	// Array with transformation functions
 
-		this.setup = function(_x, _y, _radius){
-			this.pos = { x: _x,	y: _y };
-			this.initPos = { x: _x,	y: _y };
-			this.radius = _radius;
-		}
+		/*-------------------- METHODS ---------------------*/
+		// A) CLASSES
+		// These turn our blank abstract object into a specific shape
+		obj.createCircle = function(_x, _y, _radius){
+			Circle(obj, _x, _y, _radius);
+		};
 
-		/*-------------------- FUNCTIONS --------------------*/
-
-		// this.gravitational = gravitational(this);
-
-		this.animate = function(_obj, _time){
+		// B) FUNCTIONS
+		// These add behaviors to or set properties of our object
+		obj.animate = function(_obj, _time){
 			this.radius -= 20;
 			return this;
-		}
+		};
 
-		this.setInteraction = function(_array, callback){
+		obj.setInteraction = function(_array, callback){
 			var parent = this;
 			// console.log(_array[0]);
 			// console.log(_array[1]);
@@ -171,7 +166,7 @@ mg = (function(){
 		};
 		
 		// Class variables
-		this.setColor = function(_color){
+		obj.setColor = function(_color){
 			if(typeof _color === "string"){
 				this.color = _color;
 			}else if(typeof _color === 'object'){
@@ -181,6 +176,35 @@ mg = (function(){
 			// we could add more conditions to allow for rgb, rgba, etc...
 		};
 
+		obj.gravitational = function(){
+			obj.actions.push(function(){
+				console.log('yay!');
+			});
+		};
+		return obj;
+	}
+
+	function Circle(_obj, _x, _y, _radius){
+
+		var obj = _obj;
+
+		/*-------------------- VARIABLES --------------------*/
+		obj.pos = { x: _x,	y: _y };
+		obj.initPos = { x: _x,	y: _y };	// Saving these for reseting the ball later
+		obj.radius = _radius;
+		obj.vel = { x: 0, y: 0 };
+		obj.radius = _radius;
+		obj.isDragging = false;
+
+
+
+		/*-------------------- FUNCTIONS --------------------*/
+
+
+
+
+
+
 		this.throwable = function(){
 			addListeners(this);
 			return this;
@@ -188,102 +212,97 @@ mg = (function(){
 		/*----------------------------*/
 
 
-		this.update = function(){
-			for(var i = 0; i < this.actions.length; i++){
-				this.actions[i]();
+		obj.update = function(){
+			for(var i = 0; i < obj.actions.length; i++){
+				obj.actions[i]();
 			};
-			if(this.isDragging){
-				// this.pos.x = touch.pos.x;
-				// this.pos.y = touch.pos.y;
-			// if(!this.isDragging){
+			if(obj.isDragging){
+				// obj.pos.x = touch.pos.x;
+				// obj.pos.y = touch.pos.y;
+			// if(!obj.isDragging){
 			}else{
-				if(this.vel.x > 2 || this.vel.y > 2){
+				if(obj.vel.x > 2 || obj.vel.y > 2){
 
 					// Walls
-					this.checkWalls();
-					// this.bounce();
+					obj.checkWalls();
+					// obj.bounce();
 
 					// Updating speed
-					this.vel.y += gravity;
+					obj.vel.y += gravity;
 
 					// Updating position
-					this.pos.x += this.vel.x;
-					this.pos.y += this.vel.y;
+					obj.pos.x += obj.vel.x;
+					obj.pos.y += obj.vel.y;
 				}
 			}
 		};
 
-		this.display = function(){
+		obj.display = function(){
 	        // ctx.fillStyle = parseHsla(190, 100, 50, 1);
-	        ctx.fillStyle = this.color;
+	        ctx.fillStyle = obj.color;
 	        ctx.lineWidth = 2;
 			ctx.beginPath();
-			ctx.arc(this.pos.x, this.pos.y, this.radius, this.radius, 0, Math.PI*2, false);
+			ctx.arc(obj.pos.x, obj.pos.y, obj.radius, obj.radius, 0, Math.PI*2, false);
 			ctx.fill();
 		};
 
-		this.isOver = function(_obj){
-			if(dist(_obj.pos.x, _obj.pos.y, this.pos.x, this.pos.y) < _obj.radius + this.radius){
+		obj.isOver = function(_obj){
+			if(dist(_obj.pos.x, _obj.pos.y, obj.pos.x, obj.pos.y) < _obj.radius + obj.radius){
 				return true;
 			}else{
 				return false;
 			}
 		}
 
-		this.setInMotion = function(){
+		obj.setInMotion = function(){
 			var speed = 1;
-			this.vel.x = (mgtouch.pos.x - mgptouch.pos.x)*speed;
-			this.vel.y = (mgtouch.pos.y - mgptouch.pos.y)*speed;
+			obj.vel.x = (mgtouch.pos.x - mgptouch.pos.x)*speed;
+			obj.vel.y = (mgtouch.pos.y - mgptouch.pos.y)*speed;
 		};
 
-		this.checkWalls = function(){
-			if (this.pos.x < 0 || this.pos.x > canvas.width
-				// || this.pos.y > canvas.height || this.pos.y < 0) {
-				|| this.pos.y > canvas.height) {
+		obj.checkWalls = function(){
+			if (obj.pos.x < 0 || obj.pos.x > canvas.width
+				// || obj.pos.y > canvas.height || obj.pos.y < 0) {
+				|| obj.pos.y > canvas.height) {
 				
 				// new ball wih initial user-set values
-				this.pos = {
-					x: this.initPos.x,
-					y: this.initPos.y
+				obj.pos = {
+					x: obj.initPos.x,
+					y: obj.initPos.y
 				};
-				this.vel = {
+				obj.vel = {
 					x: 0,
 					y: 0
 				};
 			}
 		};
 
-		// Not really using this for now
-		this.bounce = function(){
-	      if (this.pos.x < this.radius) {
-	        this.pos.x = this.radius;
-	        this.vel.x *= damping;
-	      }else if (this.pos.x > canvas.width - this.radius) {
-	        this.pos.x = canvas.width - this.radius;
-	        this.vel.x *= damping;
+		// Not really using obj for now
+		obj.bounce = function(){
+	      if (obj.pos.x < obj.radius) {
+	        obj.pos.x = obj.radius;
+	        obj.vel.x *= damping;
+	      }else if (obj.pos.x > canvas.width - obj.radius) {
+	        obj.pos.x = canvas.width - obj.radius;
+	        obj.vel.x *= damping;
 	      }
-	      if (this.pos.y > canvas.height - this.radius) {
-	        this.pos.y = canvas.height - this.radius;
-	        this.vel.y *= damping;
+	      if (obj.pos.y > canvas.height - obj.radius) {
+	        obj.pos.y = canvas.height - obj.radius;
+	        obj.vel.y *= damping;
 	        //Still, it may bounce forever unless we make it stop
-	        if (Math.abs(this.vel.y) < 3) {
-	          this.vel.y = 0;
+	        if (Math.abs(obj.vel.y) < 3) {
+	          obj.vel.y = 0;
 	        }
-	      }else if(this.pos.y < this.radius) {
-	        this.pos.y = this.radius;
-	        this.vel.y *= damping;
+	      }else if(obj.pos.y < obj.radius) {
+	        obj.pos.y = obj.radius;
+	        obj.vel.y *= damping;
 	      }
 		};
-	}
 
-	function gravitational(_obj){
-		console.log(_obj);
-		var obj = _obj;
-		obj.actions.push(function(){
-			console.log('yay!');
-		});
 		return obj;
 	}
+
+
 
 
 	/*---------- AUXILIAR FUNCTIONS ----------*/
