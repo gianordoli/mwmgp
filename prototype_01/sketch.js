@@ -3,14 +3,13 @@ mg.startTouch();
 /*---------------------------------------------*/
 
 gravity = 1;
-damping = -1;
 
-var timer = mg.timer(10000);
+var timer = mg.timer(7000);
 
 // Ideally we could positions/sizes this being set visually
 var circle = mg.circle(100, height-368, 50) // x, y, radius
 	.setColor("blue")					   // string, rgb, rgba, hsl
-	.gravitational()
+	.hasPhysics()
 	// .throwable()		// optional: "reverse" — for Angry Birds, pool, etc
 	;
 

@@ -190,7 +190,7 @@ mg = (function(){
 			return _obj;
 		}
 
-		obj.gravitational = function(){
+		obj.hasPhysics = function(){
 
 			// Add vel as a new property
 			obj.vel = { x: 0, y: 0 };
@@ -207,7 +207,7 @@ mg = (function(){
 
 				// Updating position
 				obj.pos.x += obj.vel.x;
-				obj.pos.y += obj.vel.y;
+				obj.pos.y += obj.vel.y;				
 			});
 		};
 		return obj;
@@ -282,9 +282,9 @@ mg = (function(){
 		// we could add more conditions to allow for rgb, rgba, etc...
 	};
 
-	function isOver(_obj1, _obj2){
-		if(_obj2.pos.x < _obj1.pos.x && _obj1.pos.x < _obj2.pos.x + _obj2.width &&
-		   _obj2.pos.y < _obj1.pos.y && _obj1.pos.y < _obj2.pos.y + _obj2.height){
+	function isColliding(_obj1, _obj2){
+		if(_obj1.pos.x < _obj2.pos.x + _obj2.width && _obj1.pos.x + _obj1.width > _obj2.pos.x &&
+   		   _obj1.pos.y < _obj2.pos.y + _obj2.height && _obj1.height + _obj1.pos.y > _obj2.pos.y){
 			return true;
 		}else{
 			return false;
@@ -295,24 +295,24 @@ mg = (function(){
 	function collidedFromLeft(_obj1, _obj2){
 		// console.log('left')
 	    return _obj1.prevPos.x + _obj1.width < _obj2.pos.x && // was not colliding
-	           _obj1.pos.x + _obj1.width >= _obj2.posx;
+	           _obj1.pos.x + _obj1.width > _obj2.posx;
 	}
 
 	function collidedFromRight(_obj1, _obj2){
 		// console.log('right');
-	    return _obj1.prevPos.x >= _obj2.pos.x + _obj2.width && // was not colliding
+	    return _obj1.prevPos.x > _obj2.pos.x + _obj2.width && // was not colliding
 	           _obj1.pos.x < _obj2.pos.x + _obj2.width;
 	}
 
 	function collidedFromTop(_obj1, _obj2){
 		// console.log('top');
 	    return _obj1.prevPos.y + _obj1.height < _obj2.pos.y && // was not colliding
-	           _obj1.pos.y + _obj1.height >= _obj2.pos.y;
+	           _obj1.pos.y + _obj1.height > _obj2.pos.y;
 	}
 
 	function collidedFromBottom(_obj1, _obj2){
 		// console.log('bottom');
-	    return _obj1.prevPos.y >= _obj2.pos.y + _obj2.height && // was not colliding
+	    return _obj1.prevPos.y > _obj2.pos.y + _obj2.height && // was not colliding
 	           _obj1.pos.y < _obj2.pos.y + _obj2.height;
 	}
 
@@ -339,20 +339,26 @@ mg = (function(){
 
 
 		obj.update = function(){
-			for(var i = 0; i < obj.actions.length; i++){
-				obj.actions[i]();
-			};
+
+			// CHeck collision with any walls in the scene
 			for(var i = 0; i < walls.length; i++){
-				if(isOver(obj, walls[i])){
+				if(isColliding(obj, walls[i])){
 					if(walls[i].effect == 'bounce'){
 						if (collidedFromTop(obj, walls[i]) || collidedFromBottom(obj, walls[i])){
+							obj.pos.y -= obj.vel.y;	// Forced update here to prevent object from being stuck
 						    obj.vel.y = -obj.vel.y;
 						}
 						if (collidedFromLeft(obj, walls[i]) || collidedFromRight(obj, walls[i])){
+							obj.pos.x -= obj.vel.x;	// Forced update here to prevent object from being stuck
 						    obj.vel.x = -obj.vel.x;
 						}
 					}
 				}
+			}
+
+			// Execute actions that have been added
+			for(var i = 0; i < obj.actions.length; i++){
+				obj.actions[i]();
 			};
 		};
 
@@ -361,35 +367,35 @@ mg = (function(){
 	        ctx.fillStyle = obj.color;
 	        ctx.lineWidth = 2;
 			ctx.beginPath();
-			ctx.arc(obj.pos.x, obj.pos.y, obj.radius, obj.radius, 0, Math.PI*2, false);
+			ctx.arc(obj.pos.x + obj.radius, obj.pos.y + obj.radius, obj.radius, obj.radius, 0, Math.PI*2, false);
 			ctx.fill();
 		};
 
 
 
 
-
-		// Not really using obj for now
-		obj.bounce = function(){
-	      if (obj.pos.x < obj.radius) {
-	        obj.pos.x = obj.radius;
-	        obj.vel.x *= damping;
-	      }else if (obj.pos.x > canvas.width - obj.radius) {
-	        obj.pos.x = canvas.width - obj.radius;
-	        obj.vel.x *= damping;
-	      }
-	      if (obj.pos.y > canvas.height - obj.radius) {
-	        obj.pos.y = canvas.height - obj.radius;
-	        obj.vel.y *= damping;
-	        //Still, it may bounce forever unless we make it stop
-	        if (Math.abs(obj.vel.y) < 3) {
-	          obj.vel.y = 0;
-	        }
-	      }else if(obj.pos.y < obj.radius) {
-	        obj.pos.y = obj.radius;
-	        obj.vel.y *= damping;
-	      }
-		};
+ 
+		// // Not really using obj for now
+		// obj.bounce = function(){
+	 //      if (obj.pos.x < obj.radius) {
+	 //        obj.pos.x = obj.radius;
+	 //        obj.vel.x *= damping;
+	 //      }else if (obj.pos.x > canvas.width - obj.radius) {
+	 //        obj.pos.x = canvas.width - obj.radius;
+	 //        obj.vel.x *= damping;
+	 //      }
+	 //      if (obj.pos.y > canvas.height - obj.radius) {
+	 //        obj.pos.y = canvas.height - obj.radius;
+	 //        obj.vel.y *= damping;
+	 //        //Still, it may bounce forever unless we make it stop
+	 //        if (Math.abs(obj.vel.y) < 3) {
+	 //          obj.vel.y = 0;
+	 //        }
+	 //      }else if(obj.pos.y < obj.radius) {
+	 //        obj.pos.y = obj.radius;
+	 //        obj.vel.y *= damping;
+	 //      }
+		// };
 
 		return obj;
 	}
