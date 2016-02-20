@@ -150,32 +150,27 @@ mg = (function(){
 			return this;
 		};
 
-		obj.setInteraction = function(_array, callback){
-			var parent = this;
-			var debounce;			
-			this.actions.push(function(){
-				if(parent.isOver(_array[0]) && parent.isOver(_array[1])){
-		    		clearTimeout(debounce);
-		    		debounce = setTimeout(callback, 500); 
-				}	
-			});
-			return this;
-		};
+		// obj.onCollision = function(_obj2, callback){
+		// 	var _obj = onCollision(obj, _obj2, callback);
+		// 	return _obj;
+		// }
 
-		obj.isOver = function(_obj2){
-			if(dist(obj.pos.x, obj.pos.y, _obj2.pos.x, _obj2.pos.y) < obj.radius + _obj2.radius){
-				return true;
-			}else{
-				return false;
-			}
-		}
+		// obj.setInteraction = function(_array, callback){
+
+		// };
+
+		// obj.isOver = function(_obj2){
+		// 	if(dist(obj.pos.x, obj.pos.y, _obj2.pos.x, _obj2.pos.y) < obj.radius + _obj2.radius){
+		// 		return true;
+		// 	}else{
+		// 		return false;
+		// 	}
+		// }
 
 		obj.throwable = function(){
 			var _obj = addListeners(obj);
 			return _obj;
 		}
-
-
 
 		obj.setInMotion = function(){
 			var speed = 1;
@@ -189,8 +184,15 @@ mg = (function(){
 		}
 
 		obj.gravitational = function(){
+
+			obj.vel = { x: 0, y: 0 };
 			obj.actions.push(function(){
-				console.log('yay!');
+				// Updating speed
+				obj.vel.y += gravity;
+
+				// Updating position
+				obj.pos.x += obj.vel.x;
+				obj.pos.y += obj.vel.y;
 			});
 		};
 		return obj;
@@ -201,6 +203,19 @@ mg = (function(){
 		// Walls are different from MgObjects
 
 	};
+
+	// function onColision(_obj1, _obj2){
+	// 	var obj = _obj1;
+	// 	var debounce;			
+	// 	obj.actions.push(function(){
+	// 		if(obj.isOver(_array[0]) && obj.isOver(_array[1])){
+	//     		clearTimeout(debounce);
+	//     		debounce = setTimeout(callback, 500); 
+	// 		}	
+	// 	});
+	// 	return this;		
+
+	// }
 
 	function setColor(_obj, _color){
 		var obj = _obj;
@@ -221,10 +236,6 @@ mg = (function(){
 		obj.pos = { x: _x,	y: _y };
 		obj.initPos = { x: _x,	y: _y };	// Saving these for reseting the ball later
 		obj.radius = _radius;
-		obj.vel = { x: 0, y: 0 };
-		obj.radius = _radius;
-		obj.isDragging = false;
-
 
 
 		/*-------------------- FUNCTIONS --------------------*/
@@ -251,12 +262,7 @@ mg = (function(){
 					obj.checkWalls();
 					// obj.bounce();
 
-					// Updating speed
-					obj.vel.y += gravity;
 
-					// Updating position
-					obj.pos.x += obj.vel.x;
-					obj.pos.y += obj.vel.y;
 				}
 			}
 		};
