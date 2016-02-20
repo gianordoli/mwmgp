@@ -2,16 +2,19 @@ mg.canvasSetup(); // This won't be public-facing
 mg.startTouch();
 /*---------------------------------------------*/
 
+gravity = 1;
+damping = -1;
+
 var timer = mg.timer(10000);
 
-
-
 // Ideally we could positions/sizes this being set visually
-var circle = mg.circle(100, height-60, 50) // x, y, radius
+var circle = mg.circle(100, height-368, 50) // x, y, radius
 	.setColor("blue")					   // string, rgb, rgba, hsl
 	.gravitational()
 	// .throwable()		// optional: "reverse" — for Angry Birds, pool, etc
 	;
+
+mg.wall(0, height - 100, width, 200, 'bounce');
 
 // As in D3/Jquery, you can store the object you declare or not.
 // Storing allows further manipulation

@@ -10,11 +10,12 @@ var mg = mg || {};
 mg = (function(){
 
 	/*---------------------- PUBLIC ---------------------*/
-	this.timer = function(time){
+	function timer(time){
 		myTimer = new Timer(time);
 		return myTimer;
 	};
-	this.circle = function(_x, _y, _radius){
+
+	function circle(_x, _y, _radius){
 		var obj = new MgObject();
 		obj.createCircle(_x, _y, _radius);
 		console.log(obj);
@@ -22,10 +23,17 @@ mg = (function(){
 		return obj;
 	};
 
+	function wall(_x, _y, _width, _height, _effect){
+		var obj = new MgWall(_x, _y, _width, _height, _effect);
+		walls.push(obj);
+		return obj;
+	};
+
 	/*---------- VARIABLES ----------*/
 	// This is gonna hold all objects created on the scene,
 	// so we can simply loop through them to update/display
 	var objects = [];
+	var walls = [];
 
 	// PRIVATE
 	var request;	// animation
@@ -62,10 +70,17 @@ mg = (function(){
 
 		if(!gameOver){
 
+			// Display all walls
+			for(var i = 0; i < walls.length; i++){
+				walls[i].display();
+			}	
+
+			// Display all objects
 			for(var i = 0; i < objects.length; i++){
 				objects[i].update();
 				objects[i].display();
-			}			
+			}
+
 
 			// Timer
 			myTimer.display();
@@ -132,7 +147,7 @@ mg = (function(){
 		var obj = {};
 
 		/*------------------- PROPERTIES -------------------*/		
-		obj.color = "black";		
+		obj.color = "black";
 		obj.actions = [];			// Array with behavior functions
 		obj.transformations = [];	// Array with transformation functions
 
@@ -159,14 +174,6 @@ mg = (function(){
 
 		// };
 
-		// obj.isOver = function(_obj2){
-		// 	if(dist(obj.pos.x, obj.pos.y, _obj2.pos.x, _obj2.pos.y) < obj.radius + _obj2.radius){
-		// 		return true;
-		// 	}else{
-		// 		return false;
-		// 	}
-		// }
-
 		obj.throwable = function(){
 			var _obj = addListeners(obj);
 			return _obj;
@@ -185,8 +192,16 @@ mg = (function(){
 
 		obj.gravitational = function(){
 
+			// Add vel as a new property
 			obj.vel = { x: 0, y: 0 };
+
+			// Add a new action
 			obj.actions.push(function(){
+				
+				// Storing the previous position
+				obj.prevPos.x = obj.pos.x;
+				obj.prevPos.y = obj.pos.y;
+
 				// Updating speed
 				obj.vel.y += gravity;
 
@@ -200,8 +215,25 @@ mg = (function(){
 
 	function MgWall(_x, _y, _width, _height, _effect){
 
-		// Walls are different from MgObjects
+		/*------------------- PROPERTIES -------------------*/
+		var obj = {};
+		obj.pos = { x: _x,	y: _y };
+		obj.width = _width;
+		obj.height = _height;
+		obj.color = "gray";
+		obj.effect = _effect;
 
+		obj.setColor = function(_color){
+			var _obj = setColor(obj, _color);
+			return _obj;
+		}
+
+		// Should walls have an update? :S
+		obj.display = function(){
+			ctx.fillStyle = obj.color;
+			ctx.fillRect(obj.pos.x, obj.pos.y, obj.width, obj.height);
+		};
+		return obj;
 	};
 
 	// function onColision(_obj1, _obj2){
@@ -217,6 +249,28 @@ mg = (function(){
 
 	// }
 
+	// function checkWalls(_obj){
+	// 	var obj = _obj;
+	// 	if (obj.pos.x < 0 || obj.pos.x > canvas.width
+	// 		// || obj.pos.y > canvas.height || obj.pos.y < 0) {
+	// 		|| obj.pos.y > canvas.height) {
+			
+	// 		// new ball wih initial user-set values
+	// 		obj.pos = {
+	// 			x: obj.initPos.x,
+	// 			y: obj.initPos.y
+	// 		};
+	// 		obj.vel = {
+	// 			x: 0,
+	// 			y: 0
+	// 		};
+	// 	}
+	// };
+
+		// if(dist(obj.pos.x, obj.pos.y, _obj2.pos.x, _obj2.pos.y) < obj.radius + _obj2.radius){
+
+
+	// Functions shared by both MgWall and MgObject go outside
 	function setColor(_obj, _color){
 		var obj = _obj;
 		if(typeof _color === "string"){
@@ -228,15 +282,52 @@ mg = (function(){
 		// we could add more conditions to allow for rgb, rgba, etc...
 	};
 
+	function isOver(_obj1, _obj2){
+		if(_obj2.pos.x < _obj1.pos.x && _obj1.pos.x < _obj2.pos.x + _obj2.width &&
+		   _obj2.pos.y < _obj1.pos.y && _obj1.pos.y < _obj2.pos.y + _obj2.height){
+			return true;
+		}else{
+			return false;
+		}
+	}	
+
+	// Detecting collision direction
+	function collidedFromLeft(_obj1, _obj2){
+		// console.log('left')
+	    return _obj1.prevPos.x + _obj1.width < _obj2.pos.x && // was not colliding
+	           _obj1.pos.x + _obj1.width >= _obj2.posx;
+	}
+
+	function collidedFromRight(_obj1, _obj2){
+		// console.log('right');
+	    return _obj1.prevPos.x >= _obj2.pos.x + _obj2.width && // was not colliding
+	           _obj1.pos.x < _obj2.pos.x + _obj2.width;
+	}
+
+	function collidedFromTop(_obj1, _obj2){
+		// console.log('top');
+	    return _obj1.prevPos.y + _obj1.height < _obj2.pos.y && // was not colliding
+	           _obj1.pos.y + _obj1.height >= _obj2.pos.y;
+	}
+
+	function collidedFromBottom(_obj1, _obj2){
+		// console.log('bottom');
+	    return _obj1.prevPos.y >= _obj2.pos.y + _obj2.height && // was not colliding
+	           _obj1.pos.y < _obj2.pos.y + _obj2.height;
+	}
+
 	function Circle(_obj, _x, _y, _radius){
 
 		var obj = _obj;
 
 		/*-------------------- VARIABLES --------------------*/
-		obj.pos = { x: _x,	y: _y };
+		obj.type = 'circle';
 		obj.initPos = { x: _x,	y: _y };	// Saving these for reseting the ball later
+		obj.pos = { x: _x,	y: _y };
+		obj.prevPos = { x: _x,	y: _y };
 		obj.radius = _radius;
-
+		obj.width = 2 * _radius;
+		obj.height = 2 * _radius;
 
 		/*-------------------- FUNCTIONS --------------------*/
 
@@ -251,20 +342,18 @@ mg = (function(){
 			for(var i = 0; i < obj.actions.length; i++){
 				obj.actions[i]();
 			};
-			if(obj.isDragging){
-				// obj.pos.x = touch.pos.x;
-				// obj.pos.y = touch.pos.y;
-			// if(!obj.isDragging){
-			}else{
-				if(obj.vel.x > 2 || obj.vel.y > 2){
-
-					// Walls
-					obj.checkWalls();
-					// obj.bounce();
-
-
+			for(var i = 0; i < walls.length; i++){
+				if(isOver(obj, walls[i])){
+					if(walls[i].effect == 'bounce'){
+						if (collidedFromTop(obj, walls[i]) || collidedFromBottom(obj, walls[i])){
+						    obj.vel.y = -obj.vel.y;
+						}
+						if (collidedFromLeft(obj, walls[i]) || collidedFromRight(obj, walls[i])){
+						    obj.vel.x = -obj.vel.x;
+						}
+					}
 				}
-			}
+			};
 		};
 
 		obj.display = function(){
@@ -278,22 +367,7 @@ mg = (function(){
 
 
 
-		obj.checkWalls = function(){
-			if (obj.pos.x < 0 || obj.pos.x > canvas.width
-				// || obj.pos.y > canvas.height || obj.pos.y < 0) {
-				|| obj.pos.y > canvas.height) {
-				
-				// new ball wih initial user-set values
-				obj.pos = {
-					x: obj.initPos.x,
-					y: obj.initPos.y
-				};
-				obj.vel = {
-					x: 0,
-					y: 0
-				};
-			}
-		};
+
 
 		// Not really using obj for now
 		obj.bounce = function(){
@@ -472,6 +546,7 @@ mg = (function(){
 		startTouch: startTouch,
 		init: init,
 		timer: timer,
-		circle: circle
+		circle: circle,
+		wall: wall
 	};	
 })();
