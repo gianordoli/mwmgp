@@ -190,6 +190,11 @@ mg = (function(){
 			return _obj;
 		}
 
+		obj.setHslaColor = function(_h, _s, _l, _a){
+			var _obj = setHslaColor(obj, _h, _s, _l, _a);
+			return _obj;
+		}
+
 		obj.hasPhysics = function(){
 
 			// Add vel as a new property
@@ -228,6 +233,11 @@ mg = (function(){
 			return _obj;
 		}
 
+		obj.setHslaColor = function(_h, _s, _l, _a){
+			var _obj = setHslaColor(obj, _h, _s, _l, _a);
+			return _obj;
+		}		
+
 		// Should walls have an update? :S
 		obj.display = function(){
 			ctx.fillStyle = obj.color;
@@ -249,38 +259,21 @@ mg = (function(){
 
 	// }
 
-	// function checkWalls(_obj){
-	// 	var obj = _obj;
-	// 	if (obj.pos.x < 0 || obj.pos.x > canvas.width
-	// 		// || obj.pos.y > canvas.height || obj.pos.y < 0) {
-	// 		|| obj.pos.y > canvas.height) {
-			
-	// 		// new ball wih initial user-set values
-	// 		obj.pos = {
-	// 			x: obj.initPos.x,
-	// 			y: obj.initPos.y
-	// 		};
-	// 		obj.vel = {
-	// 			x: 0,
-	// 			y: 0
-	// 		};
-	// 	}
-	// };
-
-		// if(dist(obj.pos.x, obj.pos.y, _obj2.pos.x, _obj2.pos.y) < obj.radius + _obj2.radius){
 
 
-	// Functions shared by both MgWall and MgObject go outside
+	/*---------- Functions shared by both MgWall and MgObject ----------*/
 	function setColor(_obj, _color){
 		var obj = _obj;
-		if(typeof _color === "string"){
-			obj.color = _color;
-		}else if(typeof _color === 'object'){
-			obj.color = parseHsla(_color['h'], _color['s'], _color['l'], _color['a'])
-		}
+		obj.color = _color;
 		return obj;
-		// we could add more conditions to allow for rgb, rgba, etc...
 	};
+
+
+	function setHslaColor(_obj, _h, _s, _l, _a){
+		var obj = _obj;
+		obj.color = parseHsla(_h, _s, _l, _a);
+		return obj;
+	};	
 
 	function isColliding(_obj1, _obj2){
 		if(_obj1.pos.x < _obj2.pos.x + _obj2.width && _obj1.pos.x + _obj1.width > _obj2.pos.x &&

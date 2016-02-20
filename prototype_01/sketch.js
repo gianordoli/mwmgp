@@ -17,8 +17,8 @@ mg.wall(0, height - 100, width, 200, 'bounce');
 
 // As in D3/Jquery, you can store the object you declare or not.
 // Storing allows further manipulation
-// target = mg.circle(width - 200, 200, 150)	
-// 			.setColor({h: 0, s: 100, l: 50, a: 0.5})
+target = mg.circle(width - 350, 20, 150)	
+			.setHslaColor(0, 100, 50, 0.5);
 // 			.setInteraction([circle, mgtouch], function(){ // mgtouch is a global
 // 				target.animate({
 // 					radius: target.radius - 20
