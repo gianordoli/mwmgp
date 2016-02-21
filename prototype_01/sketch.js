@@ -14,21 +14,27 @@ mg.rect(-100, -height, 100, 2*height).turnIntoWall('reset');	// Left
 mg.rect(width, -height, 100, 2*height).turnIntoWall('reset');	// Right
 // mg.wall(width/2 - 50, height*2/3, 20, height/2, 'destroy');	// Middle
 
-var circle = mg.circle(100, height-180, 50) // x, y, radius
-				.setColor("#FACADA")
-				.hasPhysics()
-				.throwable(1, false, function(){	// (speed, reverse?, callback) — reverse for Angry Birds, pool, etc
-					circle.removeThrowable();		// removing throwable after 1st throw
-				});
+var circle, target;
 
-var target = mg.circle(width - 150, 150, 150)
+circle = mg.circle(100, height-180, 50) 		// x, y, radius
+			.setColor("#FACADA")
+			.hasPhysics()
+			.throwable(1, false, function(){	// (speed, reverse?, callback) — reverse for Angry Birds, pool, etc
+				circle.removeThrowable();		// removing throwable after 1st throw
+				target.label('tap me!', 'center', 'middle');
+			})
+			.onReset(function(){
+				target.removeLabel();
+			});
+
+target = mg.circle(width - 150, 150, 150)
 			.setHslaColor(0, 100, 50, 0.5)
-			.draggable()
+			// .draggable()
 			.onCollision([circle, mgtouch], function(){	// Pass Array or single object
 				score ++;
 				target.animate({
 					radius: target.radius - 20
-				}, 2000)
+				}, 2000);
 			});
 
 /*---------------------------------------------*/
