@@ -8,14 +8,17 @@ var timer = mg.timer(7000);
 
 // As in D3/Jquery, you can store the object you declare or not.
 // Storing allows further manipulation
-mg.wall(0, height - 100, width, 200, 'bounce');
+
+mg.wall(0, height - 100, width, 200, 'bounce');	// Floor
+mg.wall(0, 0, -100, height, 'reset');			// Left
+mg.wall(width, 0, 100, height, 'reset');		// Right
 
 var circle = mg.circle(100, height-220, 50) // x, y, radius
 	.setColor("#FACADA")
 	.hasPhysics()
-	// (add?, speed, reverse?, callback) — reverse for Angry Birds, pool, etc
-	.throwable(true, 1, false, function(){
-		circle.throwable(false); // removing throwable after 1st throw
+	// (speed, reverse?, callback) — reverse for Angry Birds, pool, etc
+	.throwable(1, false, function(){
+		circle.removeThrowable(); // removing throwable after 1st throw
 	});
 
 var target = mg.circle(width - 350, 20, 150)

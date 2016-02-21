@@ -34,7 +34,7 @@ mg = (function(){
 	// so we can simply loop through them to update/display
 	var objects = [];
 	var walls = [];
-
+	
 	// PRIVATE
 	var request;	// animation
 	var canvas;		// canvas
@@ -60,6 +60,12 @@ mg = (function(){
 
 		score = 0;
 		gameOver = false;
+
+		for(var i = 0; i < objects.length; i++){
+			for(var prop in objects[i]){
+				console.log(prop);
+			}
+		}
 
 		draw();
 	}
@@ -170,6 +176,7 @@ mg = (function(){
 
 		obj.transformations = {};	// List with transformation functions
 
+		obj.isThrowable = false;
 		obj.isDragging = false;
 
 		/*-------------------- METHODS ---------------------*/
@@ -187,6 +194,11 @@ mg = (function(){
 			for(var prop in obj.actions){
 				obj.actions[prop]();
 			};
+		};
+
+		obj.reset = function(){
+			obj.isThrowable = false;
+			obj.isDragging = false;
 		};
 
 		// C) ADDITIONAL METHODS
@@ -244,18 +256,21 @@ mg = (function(){
 			delete mgtouch.onTouchStart[obj.id];
 		};
 
-		obj.throwable = function(_add, _speed, _reverse, _callback){
+		obj.throwable = function(_speed, _reverse, _callback){
+
+			obj.isThrowable = true;
 
 			// Add action/listener
-			if(_add){
+			if(obj.isThrowable){
+				
 				// Add events to mgtouch object
 				mgtouch.onTouchStart[obj.id] = function(){
-					if(isColliding(obj, mgtouch)){
+					if(obj.isThrowable && isColliding(obj, mgtouch)){
 						obj.isDragging = true;
 					}
 				};
 				mgtouch.onTouchEnd[obj.id] = function(){
-					if(obj.isDragging){
+					if(obj.isThrowable && obj.isDragging){
 						obj.isDragging = false;
 						obj.vel.x = (mgtouch.pos.x - mgtouch.prevPos.x) * _speed;
 						obj.vel.y = (mgtouch.pos.y - mgtouch.prevPos.y) * _speed;
@@ -264,15 +279,13 @@ mg = (function(){
 						}
 					}
 				};
-
-			// Remove action/listener
-			}else{
-				delete mgtouch.onTouchStart[obj.id];
-				delete mgtouch.onTouchEnd[obj.id];
 			}
-
 			return obj;
 		}
+
+		obj.removeThrowable = function(){
+			obj.isThrowable = false;
+		};		
 		
 		obj.setColor = function(_color){
 			var _obj = setColor(obj, _color);
@@ -314,6 +327,7 @@ mg = (function(){
 		obj.checkWalls = function(){
 			for(var i = 0; i < walls.length; i++){
 				if(isColliding(obj, walls[i])){
+
 					if(walls[i].effect == 'bounce'){
 						if (collidedFromTop(obj, walls[i]) || collidedFromBottom(obj, walls[i])){
 							obj.pos.y -= obj.vel.y;	// Forced update here to prevent object from being stuck
@@ -323,6 +337,9 @@ mg = (function(){
 							obj.pos.x -= obj.vel.x;	// Forced update here to prevent object from being stuck
 						    obj.vel.x = -obj.vel.x;
 						}
+
+					}else if(walls[i].effect == 'reset'){
+						obj.reset();
 					}
 				}
 			}
@@ -358,6 +375,30 @@ mg = (function(){
 		};
 		return obj;
 	};
+
+	function Circle(_obj, _x, _y, _radius){
+
+		var obj = _obj;
+
+		//VARIABLES
+		obj.shape = 'circle';
+		obj.initPos = { x: _x,	y: _y };	// Saving these for reseting the circle later
+		obj.pos = { x: _x,	y: _y };
+		obj.prevPos = { x: _x,	y: _y };
+		obj.radius = _radius;
+		obj.width = 2 * _radius;
+		obj.height = 2 * _radius;
+
+		// METHODS
+		obj.display = function(){
+	        ctx.fillStyle = obj.color;
+			ctx.beginPath();
+			ctx.arc(obj.pos.x + obj.radius, obj.pos.y + obj.radius, obj.radius, obj.radius, 0, Math.PI*2, false);
+			ctx.fill();
+		};
+
+		return obj;
+	}
 
 	/*---------- Functions shared by both MgWall and MgObject ----------*/
 	function setColor(_obj, _color){
@@ -415,33 +456,6 @@ mg = (function(){
 	    return _obj1.prevPos.y > _obj2.pos.y + _obj2.height && // was not colliding
 	           _obj1.pos.y < _obj2.pos.y + _obj2.height;
 	}
-
-	function Circle(_obj, _x, _y, _radius){
-
-		var obj = _obj;
-
-		/*-------------------- VARIABLES --------------------*/
-		obj.shape = 'circle';
-		obj.initPos = { x: _x,	y: _y };	// Saving these for reseting the circle later
-		obj.pos = { x: _x,	y: _y };
-		obj.prevPos = { x: _x,	y: _y };
-		obj.radius = _radius;
-		obj.width = 2 * _radius;
-		obj.height = 2 * _radius;
-
-		/*-------------------- FUNCTIONS --------------------*/
-
-		obj.display = function(){
-	        ctx.fillStyle = obj.color;
-			ctx.beginPath();
-			ctx.arc(obj.pos.x + obj.radius, obj.pos.y + obj.radius, obj.radius, obj.radius, 0, Math.PI*2, false);
-			ctx.fill();
-		};
-
-		return obj;
-	}
-
-
 
 
 	/*---------- AUXILIAR FUNCTIONS ----------*/
