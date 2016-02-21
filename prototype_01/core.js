@@ -237,8 +237,10 @@ mg = (function(){
 						obj[prop] = map(animDiff,
 										 _time, 0,
 										 initState, endState);
-						obj.width = 2 * obj.radius;
-						obj.height = 2 * obj.radius;
+						if(prop === 'radius'){
+							obj.width = 2 * obj.radius;
+							obj.height = 2 * obj.radius;							
+						}
 
 					// Remove animation from animations list
 					}else{
@@ -246,8 +248,6 @@ mg = (function(){
 					}
 				};				
 			}
-
-
 
 			// this.radius -= 20;
 			return this;
