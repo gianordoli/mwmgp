@@ -168,7 +168,7 @@ mg = (function(){
 									// Each function is added ith a key — 'collision', 'physics' —
 									// so the user can also remove them if needed
 
-		obj.transformations = [];	// Array with transformation functions
+		obj.transformations = {};	// List with transformation functions
 
 		obj.isDragging = false;
 
@@ -270,7 +270,6 @@ mg = (function(){
 				delete mgtouch.onTouchStart[obj.id];
 				delete mgtouch.onTouchEnd[obj.id];
 			}
-		
 
 			return obj;
 		}
@@ -360,21 +359,6 @@ mg = (function(){
 		return obj;
 	};
 
-	// function onColision(_obj1, _obj2){
-	// 	var obj = _obj1;
-	// 	var debounce;			
-	// 	obj.actions.push(function(){
-	// 		if(obj.isColliding(_array[0]) && obj.isColliding(_array[1])){
-	//     		clearTimeout(debounce);
-	//     		debounce = setTimeout(callback, 500); 
-	// 		}	
-	// 	});
-	// 	return this;		
-
-	// }
-
-
-
 	/*---------- Functions shared by both MgWall and MgObject ----------*/
 	function setColor(_obj, _color){
 		var obj = _obj;
@@ -390,11 +374,20 @@ mg = (function(){
 	};	
 
 	function isColliding(_obj1, _obj2){
-		if(_obj1.pos.x < _obj2.pos.x + _obj2.width && _obj1.pos.x + _obj1.width > _obj2.pos.x &&
-   		   _obj1.pos.y < _obj2.pos.y + _obj2.height && _obj1.height + _obj1.pos.y > _obj2.pos.y){
-			return true;
+		// Circles?
+		if(_obj1.shape === 'circle' && _obj2.shape === 'circle'){
+			if(dist(_obj1.pos.x, _obj1.pos.y, _obj2.pos.x, _obj2.pos.y) < _obj1.radius + _obj2.radius){
+				return true;
+			}else{
+				return false;
+			}
 		}else{
-			return false;
+			if(_obj1.pos.x < _obj2.pos.x + _obj2.width && _obj1.pos.x + _obj1.width > _obj2.pos.x &&
+	   		   _obj1.pos.y < _obj2.pos.y + _obj2.height && _obj1.height + _obj1.pos.y > _obj2.pos.y){
+				return true;
+			}else{
+				return false;
+			}
 		}
 	}	
 
@@ -428,7 +421,7 @@ mg = (function(){
 		var obj = _obj;
 
 		/*-------------------- VARIABLES --------------------*/
-		obj.type = 'circle';
+		obj.shape = 'circle';
 		obj.initPos = { x: _x,	y: _y };	// Saving these for reseting the circle later
 		obj.pos = { x: _x,	y: _y };
 		obj.prevPos = { x: _x,	y: _y };

@@ -13,12 +13,12 @@ mg.wall(0, height - 100, width, 200, 'bounce');
 var circle = mg.circle(100, height-220, 50) // x, y, radius
 	.setColor("#FACADA")
 	.hasPhysics()
-	// (add?, speed, reverse?, callback) — for Angry Birds, pool, etc
+	// (add?, speed, reverse?, callback) — reverse for Angry Birds, pool, etc
 	.throwable(true, 1, false, function(){
 		circle.throwable(false); // removing throwable after 1st throw
 	});
 
-var target = mg.circle(width - 350, 20, 150)	
+var target = mg.circle(width - 350, 20, 150)
 			.setHslaColor(0, 100, 50, 0.5)
 			.onCollision([circle, mgtouch], function(){	// Pass Array or single object
 				score ++;
