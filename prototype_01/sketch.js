@@ -6,19 +6,21 @@ gravity = 1;
 
 var timer = mg.timer(7000);
 
-// Ideally we could positions/sizes this being set visually
-var circle = mg.circle(100, height-368, 50) // x, y, radius
-	.setColor("blue")					   // string, rgb, rgba, hsl
-	.hasPhysics()
-	// .throwable()		// optional: "reverse" — for Angry Birds, pool, etc
-	;
-
-mg.wall(0, height - 100, width, 200, 'bounce');
-
 // As in D3/Jquery, you can store the object you declare or not.
 // Storing allows further manipulation
-target = mg.circle(width - 350, 20, 150)	
-			.setHslaColor(0, 100, 50, 0.5);
+mg.wall(0, height - 100, width, 200, 'bounce');
+
+var circle = mg.circle(100, height-220, 50) // x, y, radius
+	.setColor("#FACADA")
+	.hasPhysics()
+	.throwable(1)	// (speed: number, reverse: boolean) — for Angry Birds, pool, etc
+	;
+
+var target = mg.circle(width - 350, 20, 150)	
+			.setHslaColor(0, 100, 50, 0.5)
+			.onCollision([circle, mgtouch], function(){	// Pass Array or single object
+				score ++;
+			});
 // 			.setInteraction([circle, mgtouch], function(){ // mgtouch is a global
 // 				target.animate({
 // 					radius: target.radius - 20
@@ -29,15 +31,7 @@ target = mg.circle(width - 350, 20, 150)
 // Expanding on the ideas:
 
 // FOR OBJECTS
-// Circle is very specific, but we can make rects and everything else inherit the same basic properties
 // .draggable()
-// .setMass(someNumber) // so some objects respond to gravity and some don't
-
-// Walls might be a recurrent thing...
-// mg.wall(x, y, width, height, 'bounce/destroy')
-
-// FOR GLOBAL
-// mg.gravity() to set a global gravity; because maybe people want physics but no gravity (pool-like)
 
 /*---------------------------------------------*/
 mg.init(); // This won't be public-facing

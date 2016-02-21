@@ -1,6 +1,6 @@
 // Super globals... We might need to expose these
 var width, height;
-var mgtouch, mgptouch;
+var mgtouch;
 var score;
 var gravity;
 var damping;
@@ -81,6 +81,7 @@ mg = (function(){
 				objects[i].display();
 			}
 
+			// mgtouch.display();
 
 			// Timer
 			myTimer.display();
@@ -133,11 +134,25 @@ mg = (function(){
 	}
 
 	function MgTouch(){
-		this.pos = {
-			x: 0,
-			y: 0
-		};
-		this.radius = 0;
+		
+		var obj = {};
+
+		obj.pos = { x: 0, y: 0	};
+		obj.prevPos = { x: 0, y: 0 };
+		obj.width = 0;			// Declaring these just to make mgtouch work with the isColliding function
+		obj.height = 0;
+		obj.onTouchStart = [];	// Array of functions called; user-added
+		obj.onTouchMove = [];
+		obj.onTouchEnd = [];
+
+		obj.display = function(){
+			ctx.fillStyle = "black";
+			ctx.beginPath();
+			ctx.arc(obj.pos.x, obj.pos.y, obj.radius, obj.radius, 0, Math.PI*2, false);
+			ctx.fill();			
+		}
+
+		return obj;
 	}
 
 	/*-------------------------------------- CLASSES --------------------------------------*/
@@ -150,6 +165,7 @@ mg = (function(){
 		obj.color = "black";
 		obj.actions = [];			// Array with behavior functions
 		obj.transformations = [];	// Array with transformation functions
+		obj.isDragging = false;
 
 		/*-------------------- METHODS ---------------------*/
 		// A) CLASSES
@@ -158,32 +174,84 @@ mg = (function(){
 			Circle(obj, _x, _y, _radius);
 		};
 
-		// B) FUNCTIONS
-		// These add behaviors to or set properties of our object
+		// B) BASIC METHODS
+		// Every object has these
+		obj.update = function(){
+			// Execute actions that have been added (physics included)
+			for(var i = 0; i < obj.actions.length; i++){
+				obj.actions[i]();
+			};
+		};
+
+		// C) ADDITIONAL METHODS
+		// These are user-added
 		obj.animate = function(_obj, _time){
 			this.radius -= 20;
 			return this;
 		};
 
-		// obj.onCollision = function(_obj2, callback){
-		// 	var _obj = onCollision(obj, _obj2, callback);
-		// 	return _obj;
-		// }
+		obj.onCollision = function(_obj2, _callback){
+			
+			var debounce;
 
-		// obj.setInteraction = function(_array, callback){
+			obj.actions.push(function(){
 
-		// };
+				// One object only
+				if(!Array.isArray(_obj2)){
+					if(isColliding(obj, _obj2)){
+						execCallback();
+					}
 
-		obj.throwable = function(){
-			var _obj = addListeners(obj);
-			return _obj;
+				// Array of objects		
+				}else{
+					var collided = [];
+					// Loop through all other (_obj2) objects
+					for(var i = 0; i < _obj2.length; i++){
+						if(isColliding(obj, _obj2[i])){
+				    		collided.push(true);
+						}						
+					}
+					// If we have as many true values as objects...
+					if(collided.length === _obj2.length){
+						execCallback();
+					}
+				}
+
+				function execCallback(){
+					clearTimeout(debounce);
+		    		debounce = setTimeout(_callback, 500); 						
+				}
+
+			});
+			return obj;
+		};
+
+		obj.onTap = function(_callback){
+			mgtouch.onTouchStart.push(function(){
+				if(isColliding(obj, mgtouch)){
+					_callback();
+				}
+			});
+		};
+
+		obj.throwable = function(_speed){
+
+			// Add events to mgtouch object
+			mgtouch.onTouchStart.push(function(){
+				if(isColliding(obj, mgtouch)){
+					obj.isDragging = true;
+				}
+			});
+			mgtouch.onTouchEnd.push(function(){
+				if(obj.isDragging){
+					obj.isDragging = false;
+					obj.vel.x = (mgtouch.pos.x - mgtouch.prevPos.x) * _speed;
+					obj.vel.y = (mgtouch.pos.y - mgtouch.prevPos.y) * _speed;
+				}
+			});			
+
+			return obj;
 		}
-
-		obj.setInMotion = function(){
-			var speed = 1;
-			obj.vel.x = (mgtouch.pos.x - mgptouch.pos.x)*speed;
-			obj.vel.y = (mgtouch.pos.y - mgptouch.pos.y)*speed;
-		};		
 		
 		obj.setColor = function(_color){
 			var _obj = setColor(obj, _color);
@@ -202,6 +270,9 @@ mg = (function(){
 
 			// Add a new action
 			obj.actions.push(function(){
+
+				// Checking collision with walls
+				obj.checkWalls();				
 				
 				// Storing the previous position
 				obj.prevPos.x = obj.pos.x;
@@ -212,9 +283,30 @@ mg = (function(){
 
 				// Updating position
 				obj.pos.x += obj.vel.x;
-				obj.pos.y += obj.vel.y;				
+				obj.pos.y += obj.vel.y;
 			});
+
+			return obj;
 		};
+
+		// Invoked by 'hasPhysics'
+		obj.checkWalls = function(){
+			for(var i = 0; i < walls.length; i++){
+				if(isColliding(obj, walls[i])){
+					if(walls[i].effect == 'bounce'){
+						if (collidedFromTop(obj, walls[i]) || collidedFromBottom(obj, walls[i])){
+							obj.pos.y -= obj.vel.y;	// Forced update here to prevent object from being stuck
+						    obj.vel.y = -obj.vel.y;
+						}
+						if (collidedFromLeft(obj, walls[i]) || collidedFromRight(obj, walls[i])){
+							obj.pos.x -= obj.vel.x;	// Forced update here to prevent object from being stuck
+						    obj.vel.x = -obj.vel.x;
+						}
+					}
+				}
+			}
+		};				
+
 		return obj;
 	}
 
@@ -250,7 +342,7 @@ mg = (function(){
 	// 	var obj = _obj1;
 	// 	var debounce;			
 	// 	obj.actions.push(function(){
-	// 		if(obj.isOver(_array[0]) && obj.isOver(_array[1])){
+	// 		if(obj.isColliding(_array[0]) && obj.isColliding(_array[1])){
 	//     		clearTimeout(debounce);
 	//     		debounce = setTimeout(callback, 500); 
 	// 		}	
@@ -315,7 +407,7 @@ mg = (function(){
 
 		/*-------------------- VARIABLES --------------------*/
 		obj.type = 'circle';
-		obj.initPos = { x: _x,	y: _y };	// Saving these for reseting the ball later
+		obj.initPos = { x: _x,	y: _y };	// Saving these for reseting the circle later
 		obj.pos = { x: _x,	y: _y };
 		obj.prevPos = { x: _x,	y: _y };
 		obj.radius = _radius;
@@ -324,71 +416,12 @@ mg = (function(){
 
 		/*-------------------- FUNCTIONS --------------------*/
 
-		// obj.throwable = function(){
-		// 	addListeners(this);
-		// 	return this;
-		// };
-		/*----------------------------*/
-
-
-		obj.update = function(){
-
-			// CHeck collision with any walls in the scene
-			for(var i = 0; i < walls.length; i++){
-				if(isColliding(obj, walls[i])){
-					if(walls[i].effect == 'bounce'){
-						if (collidedFromTop(obj, walls[i]) || collidedFromBottom(obj, walls[i])){
-							obj.pos.y -= obj.vel.y;	// Forced update here to prevent object from being stuck
-						    obj.vel.y = -obj.vel.y;
-						}
-						if (collidedFromLeft(obj, walls[i]) || collidedFromRight(obj, walls[i])){
-							obj.pos.x -= obj.vel.x;	// Forced update here to prevent object from being stuck
-						    obj.vel.x = -obj.vel.x;
-						}
-					}
-				}
-			}
-
-			// Execute actions that have been added
-			for(var i = 0; i < obj.actions.length; i++){
-				obj.actions[i]();
-			};
-		};
-
 		obj.display = function(){
-	        // ctx.fillStyle = parseHsla(190, 100, 50, 1);
 	        ctx.fillStyle = obj.color;
-	        ctx.lineWidth = 2;
 			ctx.beginPath();
 			ctx.arc(obj.pos.x + obj.radius, obj.pos.y + obj.radius, obj.radius, obj.radius, 0, Math.PI*2, false);
 			ctx.fill();
 		};
-
-
-
-
- 
-		// // Not really using obj for now
-		// obj.bounce = function(){
-	 //      if (obj.pos.x < obj.radius) {
-	 //        obj.pos.x = obj.radius;
-	 //        obj.vel.x *= damping;
-	 //      }else if (obj.pos.x > canvas.width - obj.radius) {
-	 //        obj.pos.x = canvas.width - obj.radius;
-	 //        obj.vel.x *= damping;
-	 //      }
-	 //      if (obj.pos.y > canvas.height - obj.radius) {
-	 //        obj.pos.y = canvas.height - obj.radius;
-	 //        obj.vel.y *= damping;
-	 //        //Still, it may bounce forever unless we make it stop
-	 //        if (Math.abs(obj.vel.y) < 3) {
-	 //          obj.vel.y = 0;
-	 //        }
-	 //      }else if(obj.pos.y < obj.radius) {
-	 //        obj.pos.y = obj.radius;
-	 //        obj.vel.y *= damping;
-	 //      }
-		// };
 
 		return obj;
 	}
@@ -408,7 +441,7 @@ mg = (function(){
 
 	function startTouch(){
 		mgtouch = new MgTouch();
-		mgptouch = new MgTouch();		
+		addTouchListeners();
 	}
 
 	function mobileCheck(){
@@ -473,69 +506,105 @@ mg = (function(){
 
 
 	/*---------- EVENTS ----------*/
-	function addListeners(_obj){
-		if(isMobile){
-			canvas.addEventListener('touchstart', function(evt){
-				if(gameOver){
-					location.reload();
-				}else{
-					getTouchPos(evt);
-					if(_obj.isOver(mgtouch)){
-						_obj.isDragging = true;
-					};
-				}
-			}, false);
+	function addTouchListeners(){
 
-			canvas.addEventListener('touchmove', function(evt){
-				getTouchPos(evt);
-			}, false);
+		// Mobile or Desktop?
+		var startEvent = (isMobile) ? ('touchstart') :('mousedown');
+		var moveEvent = (isMobile) ? ('touchmove') :('mousemove');
+		var endEvent = (isMobile) ? ('touchend') :('mouseup');
 
-			canvas.addEventListener('touchend', function(evt){
-				if(_obj.isDragging){
-					_obj.setInMotion();
-					_obj.isDragging = false;
-				}
-			}, false);
-		}else{
-			canvas.addEventListener('mousedown', function(evt){
-				if(gameOver){
-					location.reload();
-				}else{
-					getTouchPos(evt);			
-					if(_obj.isOver(mgtouch)){
-						_obj.isDragging = true;
-					};
-				}
-			}, false);
+		canvas.addEventListener(startEvent, function(evt){
+			// getTouchPos(evt);
+			// Execute all functions added to touchstart	
+			for(var i =0; i < mgtouch.onTouchStart.length; i++){
+				mgtouch.onTouchStart[i]();
+			}
+			if(gameOver){
+				location.reload();
+			}
+		}, false);
 
-			canvas.addEventListener('mousemove', function(evt){
-				getTouchPos(evt);
-			}, false);
+		canvas.addEventListener(moveEvent, function(evt){
+			getTouchPos(evt);
+			// Execute all functions added to touchmove
+			for(var i =0; i < mgtouch.onTouchMove.length; i++){
+				mgtouch.onTouchStart[i]();
+			}
+		}, false);
 
-			canvas.addEventListener('mouseup', function(evt){
-				if(_obj.isDragging){
-					_obj.setInMotion();
-					_obj.isDragging = false;
-				}
-			}, false);			
-		}
+		canvas.addEventListener(endEvent, function(evt){
+			// getTouchPos(evt);
+			// Execute all functions added to touchend
+			for(var i =0; i < mgtouch.onTouchEnd.length; i++){
+				mgtouch.onTouchEnd[i]();
+			}
+		}, false);
 
 		function getTouchPos(evt){
+
+			// Update current and previous mouse/touch position
 			if(isMobile){
 				evt.preventDefault();
 				var touches = evt.changedTouches;
-				mgptouch.pos.x = mgtouch.pos.x;
-				mgptouch.pos.y = mgtouch.pos.y;
+				mgtouch.prevPos.x = mgtouch.pos.x;
+				mgtouch.prevPos.y = mgtouch.pos.y;
 				mgtouch.pos.x = touches[0].pageX;
 				mgtouch.pos.y = touches[0].pageY;
 			}else{
-				mgptouch.pos.x = mgtouch.pos.x;
-				mgptouch.pos.y = mgtouch.pos.y;
+				mgtouch.prevPos.x = mgtouch.pos.x;
+				mgtouch.prevPos.y = mgtouch.pos.y;
 				mgtouch.pos.x = evt.clientX;
 				mgtouch.pos.y = evt.clientY;
 			}
-		}	
+		}		
 	};
+
+	// function addListeners(_obj){
+	// 	if(isMobile){
+	// 		canvas.addEventListener('touchstart', function(evt){
+	// 			if(gameOver){
+	// 				location.reload();
+	// 			}else{
+	// 				getTouchPos(evt);
+	// 				if(isColliding(_obj, mgtouch)){
+	// 					_obj.isDragging = true;
+	// 				};
+	// 			}
+	// 		}, false);
+
+	// 		canvas.addEventListener('touchmove', function(evt){
+	// 			getTouchPos(evt);
+	// 		}, false);
+
+	// 		canvas.addEventListener('touchend', function(evt){
+	// 			if(_obj.isDragging){
+	// 				_obj.setInMotion();
+	// 				_obj.isDragging = false;
+	// 			}
+	// 		}, false);
+	// 	}else{
+	// 		canvas.addEventListener('mousedown', function(evt){
+	// 			if(gameOver){
+	// 				location.reload();
+	// 			}else{
+	// 				getTouchPos(evt);			
+	// 				if(isColliding(_obj, mgtouch)){
+	// 					_obj.isDragging = true;
+	// 				};
+	// 			}
+	// 		}, false);
+
+	// 		canvas.addEventListener('mousemove', function(evt){
+	// 			getTouchPos(evt);
+	// 		}, false);
+
+	// 		canvas.addEventListener('mouseup', function(evt){
+	// 			if(_obj.isDragging){
+	// 				_obj.setInMotion();
+	// 				_obj.isDragging = false;
+	// 			}
+	// 		}, false);			
+	// 	}
 
 	var init = function(){
 		setup();
