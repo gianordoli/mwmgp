@@ -3,6 +3,8 @@ var width, height;
 var mgtouch;
 var score;
 var lives;
+var gameOver;
+var youWin;
 var gravity;
 
 var mg = mg || {};
@@ -42,8 +44,6 @@ mg = (function(){
 	var isMobile;
 
 	var myTimer;
-
-	var gameOver;
 
 	function canvasSetup(){
 		canvas = document.getElementById('my-canvas');
