@@ -2,8 +2,8 @@
 var width, height;
 var mgtouch;
 var score;
+var lives;
 var gravity;
-var damping;
 
 var mg = mg || {};
 
@@ -56,15 +56,12 @@ mg = (function(){
 
 		// If nothing is passed, default to:
 		gravity = 1;
-		damping = -1;
-
 		score = 0;
 		gameOver = false;
 
+		// Backup objects' initial properties
 		for(var i = 0; i < objects.length; i++){
-			for(var prop in objects[i]){
-				console.log(prop);
-			}
+			objects[i].backup();
 		}
 
 		draw();
@@ -175,6 +172,8 @@ mg = (function(){
 									// so the user can also remove them if needed
 
 		obj.transformations = {};	// List with transformation functions
+		
+		obj.initProperties = {};	// This will be filled out when the game init is called
 
 		obj.isThrowable = false;
 		obj.isDragging = false;
@@ -196,9 +195,14 @@ mg = (function(){
 			};
 		};
 
-		obj.reset = function(){
-			obj.isThrowable = false;
-			obj.isDragging = false;
+		obj.backup = function(){
+			for(var prop in obj){
+				if(	typeof obj[prop] !== 'function' &&
+					typeof obj[prop] !== 'object' &&
+					!Array.isArray(obj[prop])){
+					obj['initProperties'][prop] = obj[prop];
+				}
+			}
 		};
 
 		// C) ADDITIONAL METHODS
@@ -299,9 +303,6 @@ mg = (function(){
 
 		obj.hasPhysics = function(){
 
-			// Add vel as a new property
-			obj.vel = { x: 0, y: 0 };
-
 			// Add a new action
 			obj.actions['physics'] = function(){
 
@@ -340,6 +341,16 @@ mg = (function(){
 
 					}else if(walls[i].effect == 'reset'){
 						obj.reset();
+					
+					}else if(walls[i].effect == 'destroy'){
+						if(lives !== undefined){
+							lives --;
+							if(lives === 0){
+								gameOver = true;	
+							}
+						}else{
+							gameOver = true;
+						}
 					}
 				}
 			}
@@ -381,13 +392,15 @@ mg = (function(){
 		var obj = _obj;
 
 		//VARIABLES
-		obj.shape = 'circle';
-		obj.initPos = { x: _x,	y: _y };	// Saving these for reseting the circle later
-		obj.pos = { x: _x,	y: _y };
-		obj.prevPos = { x: _x,	y: _y };
-		obj.radius = _radius;
-		obj.width = 2 * _radius;
-		obj.height = 2 * _radius;
+		obj.setup = function(){
+			obj.shape = 'circle';
+			obj.pos = { x: _x,	y: _y };
+			obj.prevPos = { x: _x,	y: _y };
+			obj.vel = { x: 0, y: 0 };			
+			obj.radius = _radius;
+			obj.width = 2 * _radius;
+			obj.height = 2 * _radius;
+		};
 
 		// METHODS
 		obj.display = function(){
@@ -397,6 +410,14 @@ mg = (function(){
 			ctx.fill();
 		};
 
+		obj.reset = function(){
+			obj.setup();
+			for(var prop in obj.initProperties){
+				obj[prop] = obj.initProperties[prop];
+			}
+		}
+
+		obj.setup();
 		return obj;
 	}
 

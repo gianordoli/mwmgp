@@ -9,9 +9,10 @@ var timer = mg.timer(7000);
 // As in D3/Jquery, you can store the object you declare or not.
 // Storing allows further manipulation
 
-mg.wall(0, height - 100, width, 200, 'bounce');	// Floor
-mg.wall(0, 0, -100, height, 'reset');			// Left
-mg.wall(width, 0, 100, height, 'reset');		// Right
+mg.wall(0, height - 100, width, 200, 'bounce');				// Floor
+mg.wall(-100, 0, 50, height, 'reset');						// Left
+mg.wall(width, 0, 100, height, 'reset');					// Right
+mg.wall(width/2 - 50, height/2, 20, height/2, 'destroy');	// Middle
 
 var circle = mg.circle(100, height-220, 50) // x, y, radius
 	.setColor("#FACADA")
