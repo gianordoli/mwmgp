@@ -351,8 +351,9 @@ mg = (function(){
 			mgtouch.onTouchEnd[obj.id] = function(){
 				if(obj.isThrowable && obj.isDragging){
 					obj.isDragging = false;
-					obj.velX = (mgtouch.posX - mgtouch.prevPosX) * _speed;
-					obj.velY = (mgtouch.posY - mgtouch.prevPosY) * _speed;
+					var forceX = (mgtouch.posX - mgtouch.prevPosX) * _speed;
+					var forceY = (mgtouch.posY - mgtouch.prevPosY) * _speed;
+					obj.applyForce(forceX, forceY);
 					if(_callback !== undefined){
 						_callback();
 					}
@@ -382,22 +383,35 @@ mg = (function(){
 			obj.actions['physics'] = function(){
 
 				// Checking collision with walls
-				obj.checkWalls();				
+				obj.checkWalls();
 				
 				// Storing the previous position
 				obj.prevPosX = obj.posX;
 				obj.prevPosY = obj.posY;
 
-				// Updating speed
+				// Updating speed with gravity
 				obj.velY += gravity;
 
-				// Updating position
+				// Updating speed with other accel
+				obj.velX += obj.accX;
+				obj.velY += obj.accY;
+
+				// Updating position with speed
 				obj.posX += obj.velX;
 				obj.posY += obj.velY;
+
+				// Cleaning up acceleration
+				obj.accX = 0;
+				obj.accY = 0;				
 			};
 
 			return obj;
 		};
+
+		obj.applyForce = function(_x, _y){
+			obj.accX += _x;
+			obj.accY += _y;
+		}
 
 		// Invoked by 'hasPhysics'
 		obj.checkWalls = function(){
@@ -438,7 +452,8 @@ mg = (function(){
 
 		/*------------------- PROPERTIES -------------------*/
 		var obj = {};
-		obj.pos = { x: _x,	y: _y };
+		obj.posX = _x;
+		obj.posY = _y;
 		obj.width = _width;
 		obj.height = _height;
 		obj.color = "gray";
@@ -473,8 +488,10 @@ mg = (function(){
 			obj.posY = _y;
 			obj.prevPosX = _x;
 			obj.prevPosY = _y;
-			obj.velX = _x;
-			obj.velY = _y;
+			obj.velX = 0;
+			obj.velY = 0;
+			obj.accX = 0;
+			obj.accY = 0;
 			obj.radius = _radius;
 			obj.width = 2 * _radius;
 			obj.height = 2 * _radius;

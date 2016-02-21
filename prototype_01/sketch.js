@@ -15,14 +15,10 @@ mg.wall(width, 0, 100, height, 'reset');					// Right
 
 var circle = mg.circle(100, height-220, 50); // x, y, radius
 circle.setColor("#FACADA")
-		.animate({
-			radius: circle.radius - 20,
-			// pos: {
-			// 	x: 0,
-			// 	y: 0
-			// }
-		}, 2000)
-		// .hasPhysics()
+		// .animate({
+		// 	radius: circle.radius - 20
+		// }, 2000)
+		.hasPhysics()
 		// (speed, reverse?, callback) — reverse for Angry Birds, pool, etc
 		.throwable(1, false, function(){
 			circle.removeThrowable(); // removing throwable after 1st throw
