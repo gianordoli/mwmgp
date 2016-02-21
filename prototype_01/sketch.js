@@ -13,7 +13,7 @@ mg.wall(0, height - 100, width, 200, 'bounce');
 var circle = mg.circle(100, height-220, 50) // x, y, radius
 	.setColor("#FACADA")
 	.hasPhysics()
-	.throwable(1)	// (speed: number, reverse: boolean) — for Angry Birds, pool, etc
+	.throwable(true, 1)	// (add: boolean, speed: number, reverse: boolean) — for Angry Birds, pool, etc
 	;
 
 var target = mg.circle(width - 350, 20, 150)	
