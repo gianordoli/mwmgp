@@ -30,7 +30,7 @@ circle.setColor("#FACADA")
 
 var target = mg.circle(width - 350, 20, 150)
 			.setHslaColor(0, 100, 50, 0.5)
-			// .draggable()
+			.draggable()
 			.onCollision([circle, mgtouch], function(){	// Pass Array or single object
 				score ++;
 			});

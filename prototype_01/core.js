@@ -113,10 +113,8 @@ mg = (function(){
 		var totalTime = time;
 		remainingTime = time; // global
 		var timeBar = {
-			pos: {
-				x: 30,
-				y: 30
-			},
+			posX: 30,
+			posY: 30,
 			width: canvas.width - 60,
 			height: 30
 		};
@@ -131,11 +129,11 @@ mg = (function(){
 
 		this.display = function(){
 			ctx.fillStyle = parseHsla(0, 0, 75, 1);
-			ctx.fillRect(timeBar.pos.x, timeBar.pos.y, timeBar.width, timeBar.height);
+			ctx.fillRect(timeBar.posX, timeBar.posY, timeBar.width, timeBar.height);
 			
 			ctx.fillStyle = parseHsla(0, 100, 50, 1);
 			var remainingWidth = map(remainingTime, 0, totalTime, 0, timeBar.width);
-			ctx.fillRect(timeBar.pos.x, timeBar.pos.y, remainingWidth, timeBar.height);
+			ctx.fillRect(timeBar.posX, timeBar.posY, remainingWidth, timeBar.height);
 		};
 	}
 
@@ -143,10 +141,14 @@ mg = (function(){
 		
 		var obj = {};
 
-		obj.pos = { x: 0, y: 0	};
-		obj.prevPos = { x: 0, y: 0 };
-		obj.width = 0;			// Declaring these just to make mgtouch work with the isColliding function
-		obj.height = 0;
+		obj.shape = 'circle';
+		obj.posX = 0;
+		obj.posY = 0;
+		obj.prevPosX = 0;
+		obj.prevPosY = 0;
+		obj.radius = 0;			// Declaring these just to make mgtouch work
+		obj.width = 2 * obj.radius;	// with the isColliding function
+		obj.height = 2 * obj.radius;
 		obj.onTouchStart = {};	// Lists of functions called; user-added;
 		obj.onTouchMove = {};	// Stored with { objectId: function(){} }
 		obj.onTouchEnd = {};	// so we can refer to the object id to remove the listener...
@@ -154,7 +156,7 @@ mg = (function(){
 		obj.display = function(){
 			ctx.fillStyle = "black";
 			ctx.beginPath();
-			ctx.arc(obj.pos.x, obj.pos.y, obj.radius, obj.radius, 0, Math.PI*2, false);
+			ctx.arc(obj.posX, obj.posY, obj.radius, obj.radius, 0, Math.PI*2, false);
 			ctx.fill();			
 		}
 
@@ -311,17 +313,15 @@ mg = (function(){
 			mgtouch.onTouchStart[obj.id] = function(){
 				if(obj.isDraggable && isColliding(obj, mgtouch)){
 					obj.isDragging = true;
-					diff = {
-						x: mgtouch.pos.x - obj.pos.x,
-						y: mgtouch.pos.y - obj.pos.y,
-					}					
+					diffX = mgtouch.posX - obj.posX;
+					diffY =  mgtouch.posY - obj.posY;
 				}
 			};
 			mgtouch.onTouchMove[obj.id] = function(){
 				if(obj.isDraggable && obj.isDragging){
 
-					obj.pos.x = mgtouch.pos.x - diff.x;
-					obj.pos.y = mgtouch.pos.y - diff.y;
+					obj.posX = mgtouch.posX - diffX;
+					obj.posY = mgtouch.posY - diffY;
 				}
 			};			
 			mgtouch.onTouchEnd[obj.id] = function(){
@@ -351,8 +351,8 @@ mg = (function(){
 			mgtouch.onTouchEnd[obj.id] = function(){
 				if(obj.isThrowable && obj.isDragging){
 					obj.isDragging = false;
-					obj.vel.x = (mgtouch.pos.x - mgtouch.prevPos.x) * _speed;
-					obj.vel.y = (mgtouch.pos.y - mgtouch.prevPos.y) * _speed;
+					obj.velX = (mgtouch.posX - mgtouch.prevPosX) * _speed;
+					obj.velY = (mgtouch.posY - mgtouch.prevPosY) * _speed;
 					if(_callback !== undefined){
 						_callback();
 					}
@@ -385,15 +385,15 @@ mg = (function(){
 				obj.checkWalls();				
 				
 				// Storing the previous position
-				obj.prevPos.x = obj.pos.x;
-				obj.prevPos.y = obj.pos.y;
+				obj.prevPosX = obj.posX;
+				obj.prevPosY = obj.posY;
 
 				// Updating speed
-				obj.vel.y += gravity;
+				obj.velY += gravity;
 
 				// Updating position
-				obj.pos.x += obj.vel.x;
-				obj.pos.y += obj.vel.y;
+				obj.posX += obj.velX;
+				obj.posY += obj.velY;
 			};
 
 			return obj;
@@ -406,12 +406,12 @@ mg = (function(){
 
 					if(walls[i].effect == 'bounce'){
 						if (collidedFromTop(obj, walls[i]) || collidedFromBottom(obj, walls[i])){
-							obj.pos.y -= obj.vel.y;	// Forced update here to prevent object from being stuck
-						    obj.vel.y = -obj.vel.y;
+							obj.posY -= obj.velY;	// Forced update here to prevent object from being stuck
+						    obj.velY = -obj.velY;
 						}
 						if (collidedFromLeft(obj, walls[i]) || collidedFromRight(obj, walls[i])){
-							obj.pos.x -= obj.vel.x;	// Forced update here to prevent object from being stuck
-						    obj.vel.x = -obj.vel.x;
+							obj.posX -= obj.velX;	// Forced update here to prevent object from being stuck
+						    obj.velX = -obj.velX;
 						}
 
 					}else if(walls[i].effect == 'reset'){
@@ -457,7 +457,7 @@ mg = (function(){
 		// Should walls have an update? :S
 		obj.display = function(){
 			ctx.fillStyle = obj.color;
-			ctx.fillRect(obj.pos.x, obj.pos.y, obj.width, obj.height);
+			ctx.fillRect(obj.posX, obj.posY, obj.width, obj.height);
 		};
 		return obj;
 	};
@@ -469,9 +469,12 @@ mg = (function(){
 		//VARIABLES
 		obj.setup = function(){
 			obj.shape = 'circle';
-			obj.pos = { x: _x,	y: _y };
-			obj.prevPos = { x: _x,	y: _y };
-			obj.vel = { x: 0, y: 0 };			
+			obj.posX = _x;
+			obj.posY = _y;
+			obj.prevPosX = _x;
+			obj.prevPosY = _y;
+			obj.velX = _x;
+			obj.velY = _y;
 			obj.radius = _radius;
 			obj.width = 2 * _radius;
 			obj.height = 2 * _radius;
@@ -481,7 +484,7 @@ mg = (function(){
 		obj.display = function(){
 	        ctx.fillStyle = obj.color;
 			ctx.beginPath();
-			ctx.arc(obj.pos.x + obj.radius, obj.pos.y + obj.radius, obj.radius, obj.radius, 0, Math.PI*2, false);
+			ctx.arc(obj.posX + obj.radius, obj.posY + obj.radius, obj.radius, obj.radius, 0, Math.PI*2, false);
 			ctx.fill();
 		};
 
@@ -512,14 +515,14 @@ mg = (function(){
 	function isColliding(_obj1, _obj2){
 		// Circles?
 		if(_obj1.shape === 'circle' && _obj2.shape === 'circle'){
-			if(dist(_obj1.pos.x, _obj1.pos.y, _obj2.pos.x, _obj2.pos.y) < _obj1.radius + _obj2.radius){
+			if(dist(_obj1.posX + _obj1.radius, _obj1.posY + _obj1.radius, _obj2.posX + _obj2.radius, _obj2.posY + _obj2.radius) < _obj1.radius + _obj2.radius){
 				return true;
 			}else{
 				return false;
 			}
 		}else{
-			if(_obj1.pos.x < _obj2.pos.x + _obj2.width && _obj1.pos.x + _obj1.width > _obj2.pos.x &&
-	   		   _obj1.pos.y < _obj2.pos.y + _obj2.height && _obj1.height + _obj1.pos.y > _obj2.pos.y){
+			if(_obj1.posX < _obj2.posX + _obj2.width && _obj1.posX + _obj1.width > _obj2.posX &&
+	   		   _obj1.posY < _obj2.posY + _obj2.height && _obj1.height + _obj1.posY > _obj2.posY){
 				return true;
 			}else{
 				return false;
@@ -530,26 +533,26 @@ mg = (function(){
 	// Detecting collision direction
 	function collidedFromLeft(_obj1, _obj2){
 		// console.log('left')
-	    return _obj1.prevPos.x + _obj1.width < _obj2.pos.x && // was not colliding
-	           _obj1.pos.x + _obj1.width > _obj2.posx;
+	    return _obj1.prevPosX + _obj1.width < _obj2.posX && // was not colliding
+	           _obj1.posX + _obj1.width > _obj2.posx;
 	}
 
 	function collidedFromRight(_obj1, _obj2){
 		// console.log('right');
-	    return _obj1.prevPos.x > _obj2.pos.x + _obj2.width && // was not colliding
-	           _obj1.pos.x < _obj2.pos.x + _obj2.width;
+	    return _obj1.prevPosX > _obj2.posX + _obj2.width && // was not colliding
+	           _obj1.posX < _obj2.posX + _obj2.width;
 	}
 
 	function collidedFromTop(_obj1, _obj2){
 		// console.log('top');
-	    return _obj1.prevPos.y + _obj1.height < _obj2.pos.y && // was not colliding
-	           _obj1.pos.y + _obj1.height > _obj2.pos.y;
+	    return _obj1.prevPosY + _obj1.height < _obj2.posY && // was not colliding
+	           _obj1.posY + _obj1.height > _obj2.posY;
 	}
 
 	function collidedFromBottom(_obj1, _obj2){
 		// console.log('bottom');
-	    return _obj1.prevPos.y > _obj2.pos.y + _obj2.height && // was not colliding
-	           _obj1.pos.y < _obj2.pos.y + _obj2.height;
+	    return _obj1.prevPosY > _obj2.posY + _obj2.height && // was not colliding
+	           _obj1.posY < _obj2.posY + _obj2.height;
 	}
 
 
@@ -678,15 +681,15 @@ mg = (function(){
 			if(isMobile){
 				evt.preventDefault();
 				var touches = evt.changedTouches;
-				mgtouch.prevPos.x = mgtouch.pos.x;
-				mgtouch.prevPos.y = mgtouch.pos.y;
-				mgtouch.pos.x = touches[0].pageX;
-				mgtouch.pos.y = touches[0].pageY;
+				mgtouch.prevPosX = mgtouch.posX;
+				mgtouch.prevPosY = mgtouch.posY;
+				mgtouch.posX = touches[0].pageX;
+				mgtouch.posY = touches[0].pageY;
 			}else{
-				mgtouch.prevPos.x = mgtouch.pos.x;
-				mgtouch.prevPos.y = mgtouch.pos.y;
-				mgtouch.pos.x = evt.clientX;
-				mgtouch.pos.y = evt.clientY;
+				mgtouch.prevPosX = mgtouch.posX;
+				mgtouch.prevPosY = mgtouch.posY;
+				mgtouch.posX = evt.clientX;
+				mgtouch.posY = evt.clientY;
 			}
 		}		
 	};
