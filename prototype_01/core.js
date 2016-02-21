@@ -173,9 +173,9 @@ mg = (function(){
 		obj.id = createId(7);
 		obj.color = "black";
 
-		obj.actions = {};			// List with behavior functions
-									// Each function is added ith a key — 'collision', 'physics' —
-									// so the user can also remove them if needed
+		obj.actions = {};		// List with behavior functions
+								// Each function is added ith a key — 'collision', 'physics' —
+								// so the user can also remove them if needed
 
 		obj.animations = {};	// List with transformation functions
 		
@@ -192,6 +192,10 @@ mg = (function(){
 		obj.createCircle = function(_x, _y, _radius){
 			Circle(obj, _x, _y, _radius);
 		};
+
+		obj.createRect = function(_x, _y, _width, _height){
+			Rect(obj, _x, _y, _width, _height);
+		};		
 
 		// B) BASIC METHODS
 		// Every object has these
@@ -530,9 +534,6 @@ mg = (function(){
 			obj.prevBoxBottom = obj.boxBottom;
 			obj.prevBoxLeft = obj.boxLeft;
 			obj.prevBoxRight = obj.boxRight;
-
-			// What does this wall do with objects? bounce/reset/destroy
-			obj.effect = _effect;
 		}
 
 		obj.display = function(){
@@ -819,6 +820,7 @@ mg = (function(){
 		init: init,
 		timer: timer,
 		circle: circle,
+		rect: rect,
 		wall: wall
 	};	
 })();

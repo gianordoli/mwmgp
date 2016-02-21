@@ -21,6 +21,8 @@ var circle = mg.circle(100, height-220, 50) // x, y, radius
 					circle.removeThrowable();		// removing throwable after 1st throw
 				});
 
+mg.rect(40, 40, 200, 200);				
+
 var target = mg.circle(width - 150, 150, 150)
 			.setHslaColor(0, 100, 50, 0.5)
 			.draggable()
