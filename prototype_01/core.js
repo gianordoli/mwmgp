@@ -218,32 +218,36 @@ mg = (function(){
 
 		// C) ADDITIONAL METHODS
 		// These are user-added
-		obj.animate = function(_obj, _time){
+		obj.animate = function(_propsObj, _time){
 
-			// Let's give our animation a unique id so we can remove it once it is done
-			var animId = createId(4);
-			var animEnd = (new Date()).getTime() + _time;
-			var initState = obj.radius;
-			var endState = obj.radius - 20;
+			for(var prop in _propsObj){
 
-			// Add the animation to the animations list
-			obj.animations[animId] = function(){
-				var animDiff = animEnd - (new Date()).getTime();
+				// Let's give our animation a unique id so we can remove it once it is done
+				var animId = createId(4);
+				var animEnd = (new Date()).getTime() + _time;				
+				var initState = obj[prop];
+				var endState = _propsObj[prop];
 
-				// Execute animation
-				if(animDiff > 0){
-					obj.radius = map(animDiff,
-									 _time, 0,
-									 initState, endState);
-					obj.width = 2 * obj.radius;
-					obj.height = 2 * obj.radius;
+				// Add the animation to the animations list
+				obj.animations[animId] = function(){
+					var animDiff = animEnd - (new Date()).getTime();
 
-				// Remove animation from animations list
-				}else{
-					delete obj.animations[animId];	
-				}
+					// Execute animation
+					if(animDiff > 0){
+						obj[prop] = map(animDiff,
+										 _time, 0,
+										 initState, endState);
+						obj.width = 2 * obj.radius;
+						obj.height = 2 * obj.radius;
 
-			};
+					// Remove animation from animations list
+					}else{
+						delete obj.animations[animId];	
+					}
+				};				
+			}
+
+
 
 			// this.radius -= 20;
 			return this;

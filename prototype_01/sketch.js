@@ -13,16 +13,16 @@ mg.wall(-100, 0, 50, height, 'reset');						// Left
 mg.wall(width, 0, 100, height, 'reset');					// Right
 // mg.wall(width/2 - 50, height*2/3, 20, height/2, 'destroy');	// Middle
 
-var circle = mg.circle(100, height-220, 50) // x, y, radius
-	.setColor("#FACADA")
-	.animate({
-		radius: - 20
-	}, 2000)
-	.hasPhysics()
-	// (speed, reverse?, callback) — reverse for Angry Birds, pool, etc
-	.throwable(1, false, function(){
-		circle.removeThrowable(); // removing throwable after 1st throw
-	});
+var circle = mg.circle(100, height-220, 50); // x, y, radius
+circle.setColor("#FACADA")
+		.animate({
+		radius: circle.radius - 20
+		}, 2000)
+		.hasPhysics()
+		// (speed, reverse?, callback) — reverse for Angry Birds, pool, etc
+		.throwable(1, false, function(){
+			circle.removeThrowable(); // removing throwable after 1st throw
+		});
 
 var target = mg.circle(width - 350, 20, 150)
 			.setHslaColor(0, 100, 50, 0.5)
