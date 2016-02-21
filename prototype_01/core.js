@@ -240,21 +240,37 @@ mg = (function(){
 			};
 		};
 
-		obj.throwable = function(_add, _speed, _reverse){
+		obj.removeTap = function(){
+			delete mgtouch.onTouchStart[obj.id];
+		};
 
-			// Add events to mgtouch object
-			mgtouch.onTouchStart[obj.id] = function(){
-				if(isColliding(obj, mgtouch)){
-					obj.isDragging = true;
-				}
-			};
-			mgtouch.onTouchEnd[obj.id] = function(){
-				if(obj.isDragging){
-					obj.isDragging = false;
-					obj.vel.x = (mgtouch.pos.x - mgtouch.prevPos.x) * _speed;
-					obj.vel.y = (mgtouch.pos.y - mgtouch.prevPos.y) * _speed;
-				}
-			};			
+		obj.throwable = function(_add, _speed, _reverse, _callback){
+
+			// Add action/listener
+			if(_add){
+				// Add events to mgtouch object
+				mgtouch.onTouchStart[obj.id] = function(){
+					if(isColliding(obj, mgtouch)){
+						obj.isDragging = true;
+					}
+				};
+				mgtouch.onTouchEnd[obj.id] = function(){
+					if(obj.isDragging){
+						obj.isDragging = false;
+						obj.vel.x = (mgtouch.pos.x - mgtouch.prevPos.x) * _speed;
+						obj.vel.y = (mgtouch.pos.y - mgtouch.prevPos.y) * _speed;
+						if(_callback !== undefined){
+							_callback();
+						}
+					}
+				};
+
+			// Remove action/listener
+			}else{
+				delete mgtouch.onTouchStart[obj.id];
+				delete mgtouch.onTouchEnd[obj.id];
+			}
+		
 
 			return obj;
 		}

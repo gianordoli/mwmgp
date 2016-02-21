@@ -13,20 +13,19 @@ mg.wall(0, height - 100, width, 200, 'bounce');
 var circle = mg.circle(100, height-220, 50) // x, y, radius
 	.setColor("#FACADA")
 	.hasPhysics()
-	.throwable(true, 1)	// (add: boolean, speed: number, reverse: boolean) — for Angry Birds, pool, etc
-	;
+	// (add?, speed, reverse?, callback) — for Angry Birds, pool, etc
+	.throwable(true, 1, false, function(){
+		circle.throwable(false); // removing throwable after 1st throw
+	});
 
 var target = mg.circle(width - 350, 20, 150)	
 			.setHslaColor(0, 100, 50, 0.5)
 			.onCollision([circle, mgtouch], function(){	// Pass Array or single object
 				score ++;
+				target.animate({
+					radius: target.radius - 20
+				}, 500);				
 			});
-// 			.setInteraction([circle, mgtouch], function(){ // mgtouch is a global
-// 				target.animate({
-// 					radius: target.radius - 20
-// 				}, 500);	// Could add more properties to animate...
-// 				score ++;
-// 			});
 
 // Expanding on the ideas:
 
