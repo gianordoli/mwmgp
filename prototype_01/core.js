@@ -23,7 +23,6 @@ mg = (function(){
 	function circle(_x, _y, _radius){
 		var obj = new MgObject();
 		obj.createCircle(_x, _y, _radius);
-		console.log(obj);
 		objects.push(obj);
 		return obj;
 	};
@@ -177,7 +176,7 @@ mg = (function(){
 									// Each function is added ith a key — 'collision', 'physics' —
 									// so the user can also remove them if needed
 
-		obj.transformations = {};	// List with transformation functions
+		obj.animations = {};	// List with transformation functions
 		
 		obj.initProperties = {};	// This will be filled out on game initialization
 
@@ -201,6 +200,10 @@ mg = (function(){
 			for(var prop in obj.actions){
 				obj.actions[prop]();
 			};
+			// Execute animations
+			for(var id in obj.animations){
+				obj.animations[id]();
+			}			
 		};
 
 		obj.backup = function(){
@@ -216,7 +219,33 @@ mg = (function(){
 		// C) ADDITIONAL METHODS
 		// These are user-added
 		obj.animate = function(_obj, _time){
-			this.radius -= 20;
+
+			// Let's give our animation a unique id so we can remove it once it is done
+			var animId = createId(4);
+			var animEnd = (new Date()).getTime() + _time;
+			var initState = obj.radius;
+			var endState = obj.radius - 20;
+
+			// Add the animation to the animations list
+			obj.animations[animId] = function(){
+				var animDiff = animEnd - (new Date()).getTime();
+
+				// Execute animation
+				if(animDiff > 0){
+					obj.radius = map(animDiff,
+									 _time, 0,
+									 initState, endState);
+					obj.width = 2 * obj.radius;
+					obj.height = 2 * obj.radius;
+
+				// Remove animation from animations list
+				}else{
+					delete obj.animations[animId];	
+				}
+
+			};
+
+			// this.radius -= 20;
 			return this;
 		};
 
@@ -469,7 +498,6 @@ mg = (function(){
 		obj.color = _color;
 		return obj;
 	};
-
 
 	function setHslaColor(_obj, _h, _s, _l, _a){
 		var obj = _obj;
