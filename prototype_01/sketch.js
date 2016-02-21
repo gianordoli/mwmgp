@@ -12,7 +12,7 @@ var timer = mg.timer(7000);
 mg.wall(0, height - 100, width, 200, 'bounce');				// Floor
 mg.wall(-100, 0, 50, height, 'reset');						// Left
 mg.wall(width, 0, 100, height, 'reset');					// Right
-mg.wall(width/2 - 50, height/2, 20, height/2, 'destroy');	// Middle
+mg.wall(width/2 - 50, height*2/3, 20, height/2, 'destroy');	// Middle
 
 var circle = mg.circle(100, height-220, 50) // x, y, radius
 	.setColor("#FACADA")
@@ -24,17 +24,13 @@ var circle = mg.circle(100, height-220, 50) // x, y, radius
 
 var target = mg.circle(width - 350, 20, 150)
 			.setHslaColor(0, 100, 50, 0.5)
+			// .draggable()
 			.onCollision([circle, mgtouch], function(){	// Pass Array or single object
 				score ++;
 				target.animate({
 					radius: target.radius - 20
 				}, 500);				
 			});
-
-// Expanding on the ideas:
-
-// FOR OBJECTS
-// .draggable()
 
 /*---------------------------------------------*/
 mg.init(); // This won't be public-facing

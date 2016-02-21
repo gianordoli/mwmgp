@@ -1,10 +1,13 @@
 // Super globals... We might need to expose these
 var width, height;
 var mgtouch;
+
 var score;
 var lives;
-var gameOver;
-var youWin;
+
+var winning;	// Lists of conditions for winning/losing
+var losing;		// If nothing is set, we have a highest-score game
+
 var gravity;
 
 var mg = mg || {};
@@ -42,7 +45,8 @@ mg = (function(){
 	var canvas;		// canvas
 	var ctx;
 	var isMobile;
-
+	
+	var gameOver;
 	var myTimer;
 
 	function canvasSetup(){
@@ -165,17 +169,21 @@ mg = (function(){
 		var obj = {};
 
 		/*------------------- PROPERTIES -------------------*/
+		
 		obj.id = createId(7);
 		obj.color = "black";
+
 		obj.actions = {};			// List with behavior functions
 									// Each function is added ith a key — 'collision', 'physics' —
 									// so the user can also remove them if needed
 
 		obj.transformations = {};	// List with transformation functions
 		
-		obj.initProperties = {};	// This will be filled out when the game init is called
+		obj.initProperties = {};	// This will be filled out on game initialization
 
 		obj.isThrowable = false;
+		obj.isDraggable = false;
+
 		obj.isDragging = false;
 
 		/*-------------------- METHODS ---------------------*/
@@ -260,30 +268,64 @@ mg = (function(){
 			delete mgtouch.onTouchStart[obj.id];
 		};
 
+		obj.draggable = function(_callback){
+			
+			obj.isDraggable = true;
+
+			var diff = {};
+				
+			// Add events to mgtouch object
+			mgtouch.onTouchStart[obj.id] = function(){
+				if(obj.isDraggable && isColliding(obj, mgtouch)){
+					obj.isDragging = true;
+					diff = {
+						x: mgtouch.pos.x - obj.pos.x,
+						y: mgtouch.pos.y - obj.pos.y,
+					}					
+				}
+			};
+			mgtouch.onTouchMove[obj.id] = function(){
+				if(obj.isDraggable && obj.isDragging){
+
+					obj.pos.x = mgtouch.pos.x - diff.x;
+					obj.pos.y = mgtouch.pos.y - diff.y;
+				}
+			};			
+			mgtouch.onTouchEnd[obj.id] = function(){
+				if(obj.isDraggable && obj.isDragging){
+					obj.isDragging = false;
+					diff = { x: 0, y: 0 };
+					if(_callback !== undefined){
+						_callback();
+					}
+				}
+			};
+
+			return obj;
+
+		};
+
 		obj.throwable = function(_speed, _reverse, _callback){
 
 			obj.isThrowable = true;
-
-			// Add action/listener
-			if(obj.isThrowable){
 				
-				// Add events to mgtouch object
-				mgtouch.onTouchStart[obj.id] = function(){
-					if(obj.isThrowable && isColliding(obj, mgtouch)){
-						obj.isDragging = true;
+			// Add events to mgtouch object
+			mgtouch.onTouchStart[obj.id] = function(){
+				if(obj.isThrowable && isColliding(obj, mgtouch)){
+					obj.isDragging = true;
+				}
+			};
+			mgtouch.onTouchEnd[obj.id] = function(){
+				if(obj.isThrowable && obj.isDragging){
+					obj.isDragging = false;
+					obj.vel.x = (mgtouch.pos.x - mgtouch.prevPos.x) * _speed;
+					obj.vel.y = (mgtouch.pos.y - mgtouch.prevPos.y) * _speed;
+					if(_callback !== undefined){
+						_callback();
 					}
-				};
-				mgtouch.onTouchEnd[obj.id] = function(){
-					if(obj.isThrowable && obj.isDragging){
-						obj.isDragging = false;
-						obj.vel.x = (mgtouch.pos.x - mgtouch.prevPos.x) * _speed;
-						obj.vel.y = (mgtouch.pos.y - mgtouch.prevPos.y) * _speed;
-						if(_callback !== undefined){
-							_callback();
-						}
-					}
-				};
-			}
+				}
+			};
+
 			return obj;
 		}
 
