@@ -1,9 +1,10 @@
 mg.canvasSetup(); // This won't be public-facing
 mg.startTouch();
+mg.sceneSetup();
 /*---------------------------------------------*/
 
 gravity = 1;
-var timer = mg.timer(10000);
+var timer = mg.timer(5000);
 
 // As in D3/Jquery, you can store the object you declare or not.
 // Storing allows further manipulation
@@ -25,7 +26,8 @@ circle = mg.circle(100, height-180, 50) 		// x, y, radius
 			})
 			.onReset(function(){
 				target.removeLabel();
-			});
+			})
+			;
 
 target = mg.circle(width - 150, 150, 150)
 			.setHslaColor(0, 100, 50, 0.5)
@@ -34,8 +36,9 @@ target = mg.circle(width - 150, 150, 150)
 				score ++;
 				target.animate({
 					radius: target.radius - 20
-				}, 2000);
-			});
+				}, 1000);
+			})
+			;
 
 /*---------------------------------------------*/
 mg.init(); // This won't be public-facing
