@@ -146,9 +146,8 @@ mg = (function(){
 		obj.posY = 0;
 		obj.prevPosX = 0;
 		obj.prevPosY = 0;
-		obj.radius = 0;			// Declaring these just to make mgtouch work
-		obj.width = 2 * obj.radius;	// with the isColliding function
-		obj.height = 2 * obj.radius;
+		obj.radius = 40;
+
 		obj.onTouchStart = {};	// Lists of functions called; user-added;
 		obj.onTouchMove = {};	// Stored with { objectId: function(){} }
 		obj.onTouchEnd = {};	// so we can refer to the object id to remove the listener...
@@ -205,7 +204,10 @@ mg = (function(){
 			// Execute animations
 			for(var id in obj.animations){
 				obj.animations[id]();
-			}			
+			}
+
+			// Updating boundaries
+			updateBoundaries(obj);			
 		};
 
 		obj.backup = function(){
@@ -402,7 +404,7 @@ mg = (function(){
 
 				// Cleaning up acceleration
 				obj.accX = 0;
-				obj.accY = 0;				
+				obj.accY = 0;
 			};
 
 			return obj;
@@ -452,12 +454,28 @@ mg = (function(){
 
 		/*------------------- PROPERTIES -------------------*/
 		var obj = {};
-		obj.posX = _x;
-		obj.posY = _y;
-		obj.width = _width;
-		obj.height = _height;
-		obj.color = "gray";
-		obj.effect = _effect;
+
+		obj.setup = function(){		
+			obj.shape = 'rect';
+			obj.color = "gray";
+			obj.posX = _x;
+			obj.posY = _y;
+			obj.width = _width;
+			obj.height = _height;
+
+			// Not the same as CSS! Used to detect collision
+			obj.boxTop = obj.posY;
+			obj.boxBottom = obj.posY + obj.height;
+			obj.boxLeft = obj.posX;
+			obj.boxRight = obj.posX + obj.width;
+			obj.prevBoxTop = obj.boxTop;
+			obj.prevBoxBottom = obj.boxBottom;
+			obj.prevBoxLeft = obj.boxLeft;
+			obj.prevBoxRight = obj.boxRight;
+
+			// What does this wall do with objects? bounce/reset/destroy
+			obj.effect = _effect;
+		}
 
 		obj.setColor = function(_color){
 			var _obj = setColor(obj, _color);
@@ -474,6 +492,9 @@ mg = (function(){
 			ctx.fillStyle = obj.color;
 			ctx.fillRect(obj.posX, obj.posY, obj.width, obj.height);
 		};
+
+		obj.setup();
+
 		return obj;
 	};
 
@@ -493,15 +514,23 @@ mg = (function(){
 			obj.accX = 0;
 			obj.accY = 0;
 			obj.radius = _radius;
-			obj.width = 2 * _radius;
-			obj.height = 2 * _radius;
+
+			// Not the same as CSS! Used to detect collision
+			obj.boxTop = obj.posY - obj.radius;
+			obj.boxBottom = obj.posY + obj.radius;
+			obj.boxLeft = obj.posX - obj.radius;
+			obj.boxRight = obj.posX + obj.radius;
+			obj.prevBoxTop = obj.boxTop;
+			obj.prevBoxBottom = obj.boxBottom;
+			obj.prevBoxLeft = obj.boxLeft;
+			obj.prevBoxRight = obj.boxRight;			
 		};
 
 		// METHODS
 		obj.display = function(){
 	        ctx.fillStyle = obj.color;
 			ctx.beginPath();
-			ctx.arc(obj.posX + obj.radius, obj.posY + obj.radius, obj.radius, obj.radius, 0, Math.PI*2, false);
+			ctx.arc(obj.posX, obj.posY, obj.radius, obj.radius, 0, Math.PI*2, false);
 			ctx.fill();
 		};
 
@@ -513,6 +542,7 @@ mg = (function(){
 		}
 
 		obj.setup();
+
 		return obj;
 	}
 
@@ -530,46 +560,70 @@ mg = (function(){
 	};	
 
 	function isColliding(_obj1, _obj2){
-		// Circles?
+
+		// console.log(_obj2.boxTop);
+		// console.log(_obj2);		
+
+		// Both circles
 		if(_obj1.shape === 'circle' && _obj2.shape === 'circle'){
-			if(dist(_obj1.posX + _obj1.radius, _obj1.posY + _obj1.radius, _obj2.posX + _obj2.radius, _obj2.posY + _obj2.radius) < _obj1.radius + _obj2.radius){
+			if(dist(_obj1.posX, _obj1.posY, _obj2.posX, _obj2.posY) < _obj1.radius + _obj2.radius){
 				return true;
 			}else{
 				return false;
 			}
+
+		// Rects
 		}else{
-			if(_obj1.posX < _obj2.posX + _obj2.width && _obj1.posX + _obj1.width > _obj2.posX &&
-	   		   _obj1.posY < _obj2.posY + _obj2.height && _obj1.height + _obj1.posY > _obj2.posY){
+			if(_obj1.boxLeft < _obj2.boxRight && _obj1.boxRight > _obj2.boxLeft &&
+	   		   _obj1.boxTop < _obj2.boxBottom && _obj1.boxBottom > _obj2.boxTop){
 				return true;
 			}else{
 				return false;
 			}
 		}
-	}	
+	}
+
+	function updateBoundaries(_obj){
+
+		// Store previous boundaries/positions
+		_obj.prevBoxTop = _obj.boxTop;
+		_obj.prevBoxBottom = _obj.boxBottom;
+		_obj.prevBoxLeft = _obj.boxLeft;
+		_obj.prevBoxRight = _obj.boxRight;
+
+		// Update current boundaries
+		if(_obj.shape === 'circle'){
+			_obj.boxTop = _obj.posY - _obj.radius;
+			_obj.boxBottom = _obj.posY + _obj.radius;
+			_obj.boxLeft = _obj.posX - _obj.radius;
+			_obj.boxRight = _obj.posX + _obj.radius;
+		}else{
+			_obj.boxTop = _obj.posY;
+			_obj.boxBottom = _obj.posY + _obj.height;
+			_obj.boxLeft = _obj.posX;
+			_obj.boxRight = _obj.posX + _obj.width;
+		}
+	}
 
 	// Detecting collision direction
 	function collidedFromLeft(_obj1, _obj2){
-		// console.log('left')
-	    return _obj1.prevPosX + _obj1.width < _obj2.posX && // was not colliding
-	           _obj1.posX + _obj1.width > _obj2.posx;
+	    return _obj1.prevBoxRight < _obj2.boxLeft && // was not colliding
+	           _obj1.boxRight > _obj2.boxLeft;
 	}
 
 	function collidedFromRight(_obj1, _obj2){
-		// console.log('right');
-	    return _obj1.prevPosX > _obj2.posX + _obj2.width && // was not colliding
-	           _obj1.posX < _obj2.posX + _obj2.width;
+	    return _obj1.prevBoxLeft > _obj2.boxRight && // was not colliding
+	           _obj1.boxLeft < _obj2.boxRight;
 	}
 
 	function collidedFromTop(_obj1, _obj2){
-		// console.log('top');
-	    return _obj1.prevPosY + _obj1.height < _obj2.posY && // was not colliding
-	           _obj1.posY + _obj1.height > _obj2.posY;
+	    return _obj1.prevBoxBottom < _obj2.boxTop && // was not colliding
+	           _obj1.boxBottom > _obj2.boxTop;
 	}
 
 	function collidedFromBottom(_obj1, _obj2){
-		// console.log('bottom');
-	    return _obj1.prevPosY > _obj2.posY + _obj2.height && // was not colliding
-	           _obj1.posY < _obj2.posY + _obj2.height;
+	    return _obj1.prevBoxTop > _obj2.boxBottom && // was not colliding
+	           _obj1.boxTop < _obj2.boxBottom;
 	}
 
 
