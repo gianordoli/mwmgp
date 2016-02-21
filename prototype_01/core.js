@@ -220,6 +220,13 @@ mg = (function(){
 			}
 		};
 
+		obj.reset = function(){
+			obj.setup();
+			for(var prop in obj.initProperties){
+				obj[prop] = obj.initProperties[prop];
+			}
+		};		
+
 		// C) ADDITIONAL METHODS
 		// These are user-added
 		obj.animate = function(_propsObj, _time){
@@ -477,6 +484,10 @@ mg = (function(){
 			obj.effect = _effect;
 		}
 
+		obj.update = function(){
+
+		}
+
 		obj.setColor = function(_color){
 			var _obj = setColor(obj, _color);
 			return _obj;
@@ -498,11 +509,46 @@ mg = (function(){
 		return obj;
 	};
 
+	function Rect(_obj, _x, _y, _width, _height){
+
+		var obj = _obj;
+
+		obj.setup = function(){		
+			obj.shape = 'rect';
+			obj.color = "gray";
+			obj.posX = _x;
+			obj.posY = _y;
+			obj.width = _width;
+			obj.height = _height;
+
+			// Not the same as CSS! Used to detect collision
+			obj.boxTop = obj.posY;
+			obj.boxBottom = obj.posY + obj.height;
+			obj.boxLeft = obj.posX;
+			obj.boxRight = obj.posX + obj.width;
+			obj.prevBoxTop = obj.boxTop;
+			obj.prevBoxBottom = obj.boxBottom;
+			obj.prevBoxLeft = obj.boxLeft;
+			obj.prevBoxRight = obj.boxRight;
+
+			// What does this wall do with objects? bounce/reset/destroy
+			obj.effect = _effect;
+		}
+
+		obj.display = function(){
+			ctx.fillStyle = obj.color;
+			ctx.fillRect(obj.posX, obj.posY, obj.width, obj.height);
+		};
+
+		obj.setup();
+
+		return obj;
+	}	
+
 	function Circle(_obj, _x, _y, _radius){
 
 		var obj = _obj;
 
-		//VARIABLES
 		obj.setup = function(){
 			obj.shape = 'circle';
 			obj.posX = _x;
@@ -526,7 +572,6 @@ mg = (function(){
 			obj.prevBoxRight = obj.boxRight;			
 		};
 
-		// METHODS
 		obj.display = function(){
 	        ctx.fillStyle = obj.color;
 			ctx.beginPath();
