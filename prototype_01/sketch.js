@@ -6,8 +6,8 @@ mg.sceneSetup();
 gravity = 1;
 mg.timer(10000);
 
-mg.setInstructionsMsg('Flick the little pink ball and then tap the big red one.');
-mg.setGameOverMsg('You fail!');
+mg.setInstructionsMsg('Flick the pink ball and then tap the red one.');
+// mg.setGameOverMsg('You fail!');
 
 // As in D3/Jquery, you can store the object you declare or not.
 // Storing allows further manipulation
@@ -23,9 +23,9 @@ var circle, target;
 circle = mg.circle(100, height-180, 50) 		// x, y, radius
 			.setColor("#FACADA")
 			.hasPhysics()
-			.throwable(1, false, function(){	// (speed, reverse?, callback) — reverse for Angry Birds, pool, etc
+			.throwable(0.2, false, function(){	// (speed, reverse?, callback) — reverse for Angry Birds, pool, etc
 				circle.removeThrowable();		// removing throwable after 1st throw
-				target.label('tap me!', 'center', 'middle');
+				target.setLabel('tap me!', 'center', 'middle');
 			})
 			.onReset(function(){
 				target.removeLabel();
