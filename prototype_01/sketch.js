@@ -4,7 +4,10 @@ mg.sceneSetup();
 /*---------------------------------------------*/
 
 gravity = 1;
-var timer = mg.timer(5000);
+mg.timer(10000);
+
+mg.setInstructionsMsg('Flick the little pink ball and then tap the big red one.');
+mg.setGameOverMsg('You fail!');
 
 // As in D3/Jquery, you can store the object you declare or not.
 // Storing allows further manipulation
