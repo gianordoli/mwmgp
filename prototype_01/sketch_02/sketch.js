@@ -3,8 +3,9 @@ mg.startTouch();
 mg.sceneSetup();
 /*---------------------------------------------*/
 
-gravity = 1;
-mg.timer(10000);
+gravity = 0;
+damping = 0.5;
+mg.timer(100000);
 
 mg.setInstructionsMsg('Flick the pink ball and then tap the red one.');
 // mg.setGameOverMsg('You fail!');
@@ -12,36 +13,35 @@ mg.setInstructionsMsg('Flick the pink ball and then tap the red one.');
 // As in D3/Jquery, you can store the object you declare or not.
 // Storing allows further manipulation
 
-mg.rect(0, height - 100, width, 200).turnIntoWall('bounce');	// Floor
-mg.rect(0, -height, width, 100).turnIntoWall('reset');			// Top
-mg.rect(-100, -height, 100, 2*height).turnIntoWall('reset');	// Left
-mg.rect(width, -height, 100, 2*height).turnIntoWall('reset');	// Right
-// mg.wall(width/2 - 50, height*2/3, 20, height/2, 'destroy');	// Middle
+mg.rect(0, 0, width, 20).turnIntoWall('bounce');
+mg.rect(0, height - 20, width, 20).turnIntoWall('bounce');
+mg.rect(0, 0, 20, height).turnIntoWall('bounce');
+mg.rect(width - 20, 0, 20, height).turnIntoWall('bounce');
+mg.rect(width/2 - 10, height/3, 20, height/3).turnIntoWall('bounce');
 
-var circle, target;
+var circles = [];
+var target;
 
-circle = mg.circle(100, height-180, 50) 		// x, y, radius
-			.setColor("#FACADA")
-			.hasPhysics()
-			.throwable(0.2, false, function(){	// (speed, reverse?, callback) — reverse for Angry Birds, pool, etc
-				circle.removeThrowable();		// removing throwable after 1st throw
-				target.setLabel('tap me!', 'center', 'middle');
-			})
-			.onReset(function(){
-				target.removeLabel();
-			})
-			;
-
-target = mg.circle(width - 150, 150, 150)
-			.setHslaColor(0, 100, 50, 0.5)
-			// .draggable()
-			.onCollision([circle, mgtouch], function(){	// Pass Array or single object
+target = mg.circle(width - 200, height/2, 100)
+			.setHslaColor(0, 0, 0, 1)
+			.onCollision(circles, function(){	// Pass Array or single object
 				score ++;
 				target.animate({
 					radius: target.radius - 20
 				}, 1000);
 			})
 			;
+
+for(var i = 0; i < 2; i++){
+	var newCircle;
+	newCircle = mg.circle(100, 80 + i * 80, 40)
+					.setHslaColor(Math.floor(Math.random()* 255), 70, 50, 1)
+					.hasPhysics()
+					.throwable(0.2, false, function(){
+						// newCircle.removeThrowable();
+					});
+	circles.push(newCircle);
+}
 
 /*---------------------------------------------*/
 mg.init(); // This won't be public-facing
