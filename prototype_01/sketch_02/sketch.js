@@ -34,7 +34,7 @@ target = mg.circle(width - 200, height/2, 100)
 
 for(var i = 0; i < 2; i++){
 	var newCircle;
-	newCircle = mg.circle(100, 80 + i * 80, 40)
+	newCircle = mg.circle(100, 100 + i * 100, 40)
 					.setHslaColor(Math.floor(Math.random()* 255), 70, 50, 1)
 					.setPhysics()
 					.throwable(0.2, false, function(){
