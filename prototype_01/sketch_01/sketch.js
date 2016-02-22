@@ -5,6 +5,7 @@ mg.sceneSetup();
 
 gravity = 1;
 mg.timer(10000);
+maxScore = 1;
 
 mg.setInstructionsMsg('Flick the pink ball and then tap the red one.');
 // mg.setGameOverMsg('You fail!');

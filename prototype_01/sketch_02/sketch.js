@@ -3,6 +3,7 @@ mg.startTouch();
 mg.sceneSetup();
 /*---------------------------------------------*/
 
+maxScore = 1;
 gravity = 0;
 damping = 0.5;
 mg.timer(100000);
