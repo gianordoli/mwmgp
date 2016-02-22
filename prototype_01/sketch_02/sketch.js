@@ -36,7 +36,7 @@ for(var i = 0; i < 2; i++){
 	var newCircle;
 	newCircle = mg.circle(100, 80 + i * 80, 40)
 					.setHslaColor(Math.floor(Math.random()* 255), 70, 50, 1)
-					.hasPhysics()
+					.setPhysics()
 					.throwable(0.2, false, function(){
 						// newCircle.removeThrowable();
 					});

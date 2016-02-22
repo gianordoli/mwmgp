@@ -22,7 +22,7 @@ var circle, target;
 
 circle = mg.circle(100, height-180, 50) 		// x, y, radius
 			.setColor("#FACADA")
-			.hasPhysics()
+			.setPhysics()
 			.throwable(0.2, false, function(){	// (speed, reverse?, callback) — reverse for Angry Birds, pool, etc
 				circle.removeThrowable();		// removing throwable after 1st throw
 				target.setLabel('tap me!', 'center', 'middle');
